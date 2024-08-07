@@ -1,0 +1,89 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   
+  username  String   @unique 
+  name      String?
+  password  String
+  roles     UserRole[]
+  permissions UserPermission[]
+  createdAt DateTime @default(now()) 
+  updatedAt DateTime @updatedAt     
+}
+
+model Product {
+  id            Int      @id @default(autoincrement())
+  name          String
+  customerName  String
+  quantity      Int
+  price         Float
+  discount      Float
+  profit        Float
+  region        String
+  category      String
+  rating        Float
+  createdAt DateTime @default(now()) 
+  updatedAt DateTime @updatedAt   
+}
+
+model Role {
+  id          Int          @id @default(autoincrement())
+  name        String       @unique
+  users       UserRole[]
+  permissions RolePermission[]
+  createdAt DateTime @default(now()) 
+  updatedAt DateTime @updatedAt  
+}
+
+model Permission {
+  id    Int    @id @default(autoincrement())
+  name  String @unique
+  roles RolePermission[]
+  users UserPermission[]
+  createdAt DateTime @default(now()) 
+  updatedAt DateTime @updatedAt 
+}
+
+model UserRole {
+  userId Int
+  roleId Int
+  user   User @relation(fields: [userId], references: [id])
+  role   Role @relation(fields: [roleId], references: [id])
+  @@id([userId, roleId])
+  createdAt DateTime @default(now()) 
+  updatedAt DateTime @updatedAt 
+}
+
+model UserPermission {
+  userId       Int
+  permissionId Int
+  user         User       @relation(fields: [userId], references: [id])
+  permission   Permission @relation(fields: [permissionId], references: [id])
+  @@id([userId, permissionId])
+  createdAt DateTime @default(now()) 
+  updatedAt DateTime @updatedAt 
+}
+
+model RolePermission {
+  roleId       Int
+  permissionId Int
+  role         Role       @relation(fields: [roleId], references: [id])
+  permission   Permission @relation(fields: [permissionId], references: [id])
+  @@id([roleId, permissionId])
+  createdAt DateTime @default(now()) 
+  updatedAt DateTime @updatedAt 
+}
