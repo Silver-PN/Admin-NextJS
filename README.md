@@ -49,7 +49,7 @@ _If you are looking for a React admin dashboard starter, here is the [repo](http
 
 Follow these steps to clone the repository and start the development server:
 
-- `git clone https://github.com/Kiranism/next-shadcn-dashboard-starter.git`
+- `git clone https://github.com/Silver-PN/EVN-Admin-NextJS.git`
 - `npm install`
 - Create a `.env.local` file by copying the example environment file:
   `cp env.example.txt .env.local`

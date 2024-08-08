@@ -2,6 +2,8 @@
 import { ColumnDef } from '@tanstack/react-table';
 import { CellAction } from './cell-action';
 import { Checkbox } from '@/components/ui/checkbox';
+import { ArrowUpDown } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 type UserData = {
   name: string;
@@ -36,7 +38,17 @@ export const columns: ColumnDef<UserData>[] = [
   },
   {
     accessorKey: 'email',
-    header: 'Email'
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+        >
+          Email
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      );
+    }
   },
   {
     id: 'role',
