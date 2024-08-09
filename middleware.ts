@@ -1,17 +1,73 @@
-// Protecting routes with next-auth
-// https://next-auth.js.org/configuration/nextjs#middleware
-// https://nextjs.org/docs/app/building-your-application/routing/middleware
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
+import { getToken } from 'next-auth/jwt';
 
-import NextAuth from 'next-auth';
-import authConfig from './auth.config';
+const NEXTAUTH_SECRET = process.env.NEXTAUTH_SECRET;
+const PROTECTED_ROUTES = ['/dashboard'];
+// const PROTECTED_ROUTES = [
+//   '/user_rp',
+//   '/role-permissions',
+//   '/permissions',
+//   '/roles'
+// ];
+const ROLE_SPECIFIC_PERMISSION = ['/roles/'];
 
-const { auth } = NextAuth(authConfig);
+async function authenticate(request: NextRequest) {
+  return await getToken({
+    req: request,
+    secret: NEXTAUTH_SECRET
+  });
+}
 
-export default auth((req) => {
-  if (!req.auth) {
-    const url = req.url.replace(req.nextUrl.pathname, '/');
-    return Response.redirect(url);
+function hasAnyPermission(
+  userPermissions: string[],
+  requiredPermissions: string[]
+): boolean {
+  return requiredPermissions.some((permission) =>
+    userPermissions.includes(permission)
+  );
+}
+
+export async function middleware(request: NextRequest) {
+  const url = new URL(request.url);
+  const pathname = url.pathname;
+
+  if (pathname.startsWith('/api') && !pathname.startsWith('/api/auth')) {
+    const token = await authenticate(request);
+    if (!token) {
+      return new NextResponse('Vui lòng đăng nhập để truy cập', {
+        status: 401
+      });
+    } else if (pathname.startsWith('/api/auth')) {
+      return NextResponse.next();
+    }
   }
-});
 
-export const config = { matcher: ['/dashboard/:path*'] };
+  const isProtectRoute = PROTECTED_ROUTES.includes(pathname);
+  // const isProtectedRoute = PROTECTED_ROUTES.includes(pathname);
+  const isRoleSpecificPermission = ROLE_SPECIFIC_PERMISSION.some((role) =>
+    pathname.includes(role)
+  );
+
+  if (isProtectRoute || isRoleSpecificPermission) {
+    const token = await authenticate(request);
+    if (!token) {
+      return NextResponse.redirect(new URL('/', request.url));
+    }
+
+    if (isRoleSpecificPermission) {
+      const requiredPermissions = ['user_view'];
+      const userPermissions = token.permissions || [];
+
+      if (hasAnyPermission(userPermissions, requiredPermissions)) {
+        return NextResponse.next();
+      } else {
+        return NextResponse.redirect(new URL('/dashboard', request.url));
+      }
+    }
+
+    return NextResponse.next();
+  }
+
+  return NextResponse.next();
+}
