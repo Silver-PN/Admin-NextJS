@@ -1,6 +1,6 @@
-import { PrismaClient } from "@prisma/client";
-import { NextResponse } from "next/server";
-import User from "@/models/User"
+import { PrismaClient } from '@prisma/client';
+import { NextResponse } from 'next/server';
+import User from '@/models/User';
 const prisma = new PrismaClient();
 
 export const POST = async (request: any) => {
@@ -8,19 +8,35 @@ export const POST = async (request: any) => {
 
   try {
     const role = await prisma.role.create({
-      data: { name },
+      data: { name }
     });
     return NextResponse.json(role);
   } catch (err: any) {
-    return new NextResponse(err.message || "Internal Server Error", {
-      status: 500,
+    return new NextResponse(err.message || 'Internal Server Error', {
+      status: 500
     });
   }
 };
+
 export const GET = async () => {
   try {
-    const roles = await prisma.role.findMany();
-    return new NextResponse(JSON.stringify(roles), { status: 200 });
+    const roles = await prisma.role.findMany({
+      include: {
+        permissions: true
+      }
+    });
+
+    const roleWithPermissions = roles.map((role) => ({
+      id: role.id,
+      name: role.name,
+      permissions: role.permissions.map((p) => p.permissionId),
+      createdAt: role.createdAt,
+      updatedAt: role.updatedAt
+    }));
+
+    return new NextResponse(JSON.stringify(roleWithPermissions), {
+      status: 200
+    });
   } catch (error) {
     return new NextResponse(error.message, { status: 500 });
   }

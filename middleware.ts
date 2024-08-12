@@ -56,7 +56,7 @@ export async function middleware(request: NextRequest) {
     }
 
     if (isRoleSpecificPermission) {
-      const requiredPermissions = ['user_view'];
+      const requiredPermissions = ['user_view', 'user_edit'];
       const userPermissions = token.permissions || [];
 
       if (hasAnyPermission(userPermissions, requiredPermissions)) {
