@@ -7,19 +7,10 @@ declare global {
 }
 
 if (process.env.NODE_ENV === 'production') {
-  prisma = new PrismaClient({
-    log: ['query', 'info', 'warn', 'error']
-  });
+  prisma = new PrismaClient();
 } else {
   if (!global.prismaGlobal) {
-    global.prismaGlobal = new PrismaClient({
-      log: ['query', 'info', 'warn', 'error']
-    });
-    //   global.prismaGlobal.$on('query', (e) => {
-    //     console.log(`Query: ${e.query}`);
-    //     console.log(`Params: ${e.params}`);
-    //     console.log(`Duration: ${e.duration}ms`);
-    //   });
+    global.prismaGlobal = new PrismaClient();
   }
   prisma = global.prismaGlobal;
 }

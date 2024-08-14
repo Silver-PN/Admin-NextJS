@@ -43,10 +43,12 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  const isProtectRoute = PROTECTED_ROUTES.includes(pathname);
+  const isProtectRoute = PROTECTED_ROUTES.some((route) =>
+    pathname.startsWith(route)
+  );
   // const isProtectedRoute = PROTECTED_ROUTES.includes(pathname);
   const isRoleSpecificPermission = ROLE_SPECIFIC_PERMISSION.some((role) =>
-    pathname.includes(role)
+    pathname.startsWith(role)
   );
 
   if (isProtectRoute || isRoleSpecificPermission) {
