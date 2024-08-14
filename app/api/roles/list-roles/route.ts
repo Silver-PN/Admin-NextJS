@@ -15,6 +15,36 @@ export const POST = async (request: any) => {
     });
   }
 };
+// export const POST = async (request: any) => {
+//   const { name, permissions } = await request.json(); // Assume permissions are sent in the request
+
+//   try {
+//     const result = await prisma.$transaction(async (prisma) => {
+//       // Tạo một role mới
+//       const role = await prisma.role.create({
+//         data: { name }
+//       });
+
+//       // Nếu có quyền (permissions) được truyền vào, thêm chúng vào role
+//       if (permissions && permissions.length > 0) {
+//         await prisma.rolePermission.createMany({
+//           data: permissions.map((permissionId: string) => ({
+//             roleId: role.id,
+//             permissionId
+//           }))
+//         });
+//       }
+
+//       return role;
+//     });
+
+//     return NextResponse.json(result);
+//   } catch (err: any) {
+//     return new NextResponse(err.message || 'Internal Server Error', {
+//       status: 500
+//     });
+//   }
+// };
 
 export const GET = async () => {
   try {
