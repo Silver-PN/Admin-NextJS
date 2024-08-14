@@ -16,7 +16,8 @@ import {
   ThemeProvider,
   createTheme,
   Box,
-  InputAdornment
+  InputAdornment,
+  Divider
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 
@@ -554,7 +555,7 @@ const MoveItems = ({
               </Grid>
             </Grid>
           </Grid>
-          <Grid item xs={2}>
+          <Grid item xs={1.5}>
             {allRoles.map((role) => (
               <Grid item xs={12} sm={6} md={4} key={role.id}>
                 <FormControlLabel
@@ -568,6 +569,13 @@ const MoveItems = ({
                 />
               </Grid>
             ))}{' '}
+          </Grid>
+          <Grid item xs={0.5}>
+            <Divider
+              style={{ height: '82%' }}
+              orientation="vertical"
+              aria-hidden="true"
+            />
           </Grid>
           <Grid item xs={3}>
             <TextField
