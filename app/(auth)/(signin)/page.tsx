@@ -5,21 +5,19 @@ import Image from 'next/image';
 import Logo from '@/public/logo.png';
 
 export const metadata: Metadata = {
-  title: 'Authentication',
+  title: 'Login Page',
   description: 'Authentication forms built using the components.'
 };
 
 export default function AuthenticationPage() {
   return (
-    <div className="relative flex h-screen flex-col md:grid lg:grid-cols-12 lg:px-0">
-      <div className="col-span-12 flex h-full items-center p-4 lg:col-span-6 lg:p-8">
+    <div className="relative flex h-screen flex-col lg:flex-row lg:px-0">
+      <div className="flex h-full w-full items-center p-4 lg:w-2/5 lg:p-8">
         <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]">
           <div className="flex flex-col space-y-2 text-center">
-            <h1 className="text-2xl font-semibold tracking-tight">
-              Create an account
-            </h1>
+            <h1 className="text-2xl font-semibold tracking-tight">Đăng nhập</h1>
             <p className="text-sm text-muted-foreground">
-              Enter your email below to create your account
+              Nhập tài khoản và mật khẩu của bạn để đăng nhập
             </p>
           </div>
           <UserAuthForm />
@@ -42,10 +40,18 @@ export default function AuthenticationPage() {
           </p>
         </div>
       </div>
-      <div className="col-span-12 flex h-full items-center p-4 lg:col-span-6 lg:p-8">
-        <div className="mx-auto flex w-full flex-col justify-center space-y-6 text-center sm:w-[350px]">
-          <Image src={Logo} alt="Logo" width={300} height={300} />
-          <span className="font-bold">Hệ Thống tin nhắn tập trung</span>
+
+      <div className="hidden h-full w-full items-center p-4 lg:flex lg:w-3/5 lg:p-8">
+        <div className="mx-auto flex w-full flex-col justify-center space-y-6 text-center">
+          <Image
+            src={Logo}
+            alt="Logo"
+            width={300}
+            height={300}
+            className="mx-auto"
+          />
+          <h1 className="text-6xl font-extrabold ">HỆ THỐNG</h1>
+          <h1 className="text-6xl font-extrabold ">TIN NHẮN TẬP TRUNG </h1>
         </div>
       </div>
     </div>

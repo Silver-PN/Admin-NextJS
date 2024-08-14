@@ -17,13 +17,15 @@ import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import GoogleSignInButton from '../github-auth-button';
+import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 const formSchema = z.object({
   username: z.string().min(1, { message: 'Username is required' }),
   password: z
     .string()
-    .min(6, { message: 'Password must be at least 6 characters long' })
+    .min(6, { message: 'Password must be at least 6 characters long' }),
+  loginType: z.string().nonempty({ message: 'Login type is required' }) // Added login type to the schema
 });
 
 type UserFormValue = z.infer<typeof formSchema>;
@@ -36,7 +38,8 @@ export default function UserAuthForm() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       username: '',
-      password: ''
+      password: '',
+      loginType: 'sql' // Set a default value if needed
     }
   });
 
@@ -46,6 +49,7 @@ export default function UserAuthForm() {
       const result = await signIn('credentials', {
         username: data.username,
         password: data.password,
+        loginType: data.loginType, // Include login type in the request
         redirect: false,
         callbackUrl: callbackUrl ?? '/dashboard'
       });
@@ -73,14 +77,20 @@ export default function UserAuthForm() {
             name="username"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Username</FormLabel>
+                <FormLabel>Tài khoản</FormLabel>
                 <FormControl>
-                  <Input
-                    type="text"
-                    placeholder="Enter your username..."
-                    disabled={loading}
-                    {...field}
-                  />
+                  <div className="relative">
+                    <Input
+                      type="text"
+                      placeholder="Enter your username..."
+                      disabled={loading}
+                      {...field}
+                      className="pr-32"
+                    />
+                    <span className="absolute right-0 top-0 flex h-full items-center px-3 text-gray-500">
+                      @evnhcmc.vn
+                    </span>
+                  </div>
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -92,7 +102,7 @@ export default function UserAuthForm() {
             name="password"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Password</FormLabel>
+                <FormLabel>Mật Khẩu</FormLabel>
                 <FormControl>
                   <Input
                     type="password"
@@ -107,21 +117,55 @@ export default function UserAuthForm() {
           />
 
           <Button disabled={loading} className="ml-auto w-full" type="submit">
-            Continue With Username & Password
+            Đăng nhập
           </Button>
+          <a
+            className="mt-4 block text-right text-sm text-blue-700 underline"
+            style={{ cursor: 'pointer' }}
+          >
+            Quên mật khẩu?
+          </a>
+
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-background px-2 text-muted-foreground">
+                Chế độ đăng nhập
+              </span>
+            </div>
+          </div>
+          <FormField
+            control={form.control}
+            name="loginType"
+            render={({ field }) => (
+              <FormItem>
+                <FormControl>
+                  <RadioGroup
+                    defaultValue={field.value}
+                    onValueChange={field.onChange}
+                  >
+                    <div className="flex justify-center space-x-4">
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="ldap" id="ldap" />
+                        <Label htmlFor="ldap">User Domain</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="sql" id="sql" />
+                        <Label htmlFor="sql">User Local</Label>
+                      </div>
+                    </div>
+                  </RadioGroup>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
         </form>
       </Form>
-      <div className="relative">
-        <div className="absolute inset-0 flex items-center">
-          <span className="w-full border-t" />
-        </div>
-        <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-background px-2 text-muted-foreground">
-            Or continue with
-          </span>
-        </div>
-      </div>
-      <GoogleSignInButton />
+
+      {/* <GoogleSignInButton /> */}
     </>
   );
 }
