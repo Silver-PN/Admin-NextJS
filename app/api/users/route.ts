@@ -1,26 +1,8 @@
 import bcrypt from 'bcryptjs';
 import { NextResponse } from 'next/server';
-import User from '@/app/models/User';
-import { z } from 'zod';
 import prisma from '@/lib/db';
-const userSchema = z
-  .object({
-    email: z.string().email({ message: 'Invalid email address' }),
-    username: z
-      .string()
-      .min(3, { message: 'Username must be at least 3 characters long' }),
-    name: z.string().optional(),
-    password: z
-      .string()
-      .min(6, { message: 'Password must be at least 6 characters long' }),
-    confirmPassword: z
-      .string()
-      .min(6, { message: 'Password must be at least 6 characters long' })
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords don't match",
-    path: ['confirmPassword']
-  });
+import { userSchema } from '@/lib/validation';
+import { z } from 'zod';
 
 export const POST = async (request: any) => {
   try {
@@ -29,22 +11,34 @@ export const POST = async (request: any) => {
     userSchema.parse(body);
 
     const { email, password, username, name } = body;
+    const result = await prisma.$transaction(async (prisma) => {
+      const existingUser = await prisma.user.findUnique({
+        where: { username }
+      });
+      if (existingUser) {
+        throw new Error('Username is already in use');
+      }
+      // const existingEmail = await prisma.user.findUnique({
+      //   where: { email }
+      // });
 
-    const existingUser = await User.findByUsername(username);
-    if (existingUser) {
-      return new NextResponse('Username is already in use', { status: 400 });
-    }
+      // if (existingEmail) {
+      //   throw new Error('Email is already in use');
+      // }
+      const hashedPassword = await bcrypt.hash(password, 5);
+      await prisma.user.create({
+        data: {
+          email,
+          username,
+          password: hashedPassword,
+          name
+        }
+      });
 
-    const hashedPassword = await bcrypt.hash(password, 5);
-
-    await User.create({
-      email,
-      username,
-      password: hashedPassword,
-      name
+      return 'User is registered';
     });
 
-    return new NextResponse('User is registered', { status: 200 });
+    return new NextResponse(result, { status: 200 });
   } catch (err: any) {
     if (err instanceof z.ZodError) {
       return new NextResponse(JSON.stringify(err.errors), { status: 400 });

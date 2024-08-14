@@ -99,21 +99,21 @@ export const UserForm: React.FC<UserFormProps> = ({ initialData, roles }) => {
         description: 'Your request was successful.'
       });
     } catch (error: any) {
-      if (error.response && error.response.data) {
-        const errors = error.response.data;
+      // if (error.response && error.response.data) {
+      //   const errors = error.response.data;
 
-        toast({
-          variant: 'destructive',
-          title: 'Uh oh! Something went wrong.',
-          description: errors
-        });
-      } else {
-        toast({
-          variant: 'destructive',
-          title: 'Uh oh! Something went wrong.',
-          description: 'There was a problem with your request.'
-        });
-      }
+      //   toast({
+      //     variant: 'destructive',
+      //     title: 'Uh oh! Something went wrong.',
+      //     description: errors
+      //   });
+      // } else {
+      toast({
+        variant: 'destructive',
+        title: 'Uh oh! Something went wrong.',
+        description: 'There was a problem with your request.'
+      });
+      // }
     } finally {
       setLoading(false);
     }
