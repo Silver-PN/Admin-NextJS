@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
 
-const prisma = new PrismaClient();
+import prisma from '@/lib/db';
 
 export async function GET() {
   try {
@@ -16,7 +15,7 @@ export async function POST(request: Request) {
   const { name } = await request.json();
   try {
     const permission = await prisma.permission.create({
-      data: { name },
+      data: { name }
     });
     return NextResponse.json(permission);
   } catch (error) {

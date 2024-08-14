@@ -1,9 +1,7 @@
 // app/api/role-permissions/route.ts
 
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import prisma from '@/lib/db';
 
 export async function GET() {
   try {
@@ -25,8 +23,8 @@ export async function POST(request: Request) {
     const rolePermission = await prisma.rolePermission.create({
       data: {
         role: { connect: { id: roleId } },
-        permission: { connect: { id: permissionId } },
-      },
+        permission: { connect: { id: permissionId } }
+      }
     });
     return NextResponse.json(rolePermission);
   } catch (error) {

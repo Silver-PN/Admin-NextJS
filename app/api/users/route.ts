@@ -1,10 +1,8 @@
-import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import { NextResponse } from 'next/server';
 import User from '@/app/models/User';
 import { z } from 'zod';
-const prisma = new PrismaClient();
-
+import prisma from '@/lib/db';
 const userSchema = z
   .object({
     email: z.string().email({ message: 'Invalid email address' }),

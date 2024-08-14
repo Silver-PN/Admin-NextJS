@@ -1,7 +1,5 @@
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import prisma from '@/lib/db';
 
 export async function POST(request: Request) {
   const { userId, permissionId } = await request.json();
@@ -34,7 +32,7 @@ export async function PUT(request: Request) {
         userId,
         permissionId
       })),
-      skipDuplicates: true // Avoid adding duplicate entries if they exist
+      skipDuplicates: true
     });
 
     return NextResponse.json(addedPermissions);
