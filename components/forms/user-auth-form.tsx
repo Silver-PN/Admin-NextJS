@@ -49,13 +49,22 @@ export default function UserAuthForm() {
       const result = await signIn('credentials', {
         username: data.username,
         password: data.password,
-        loginType: data.loginType, // Include login type in the request
+        loginType: data.loginType,
         redirect: false,
         callbackUrl: callbackUrl ?? '/dashboard'
       });
 
       if (result?.error) {
-        toast.error('Invalid username or password');
+        toast.error('Đăng nhập thất bại !!!', {
+          position: 'top-center',
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: 'light'
+        });
       } else if (result?.url) {
         window.location.href = result.url;
       }
@@ -63,10 +72,22 @@ export default function UserAuthForm() {
       setLoading(false);
     }
   };
-
+  const handleForgetPassword = () => {
+    toast.info('Vui lòng liên hệ ADMIN hệ thống để nhận lại mật khẩu', {
+      position: 'top-center',
+      autoClose: 5000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: 'light'
+    });
+  };
   return (
     <>
       <ToastContainer />
+
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
@@ -120,6 +141,7 @@ export default function UserAuthForm() {
             Đăng nhập
           </Button>
           <a
+            onClick={handleForgetPassword}
             className="mt-4 block text-right text-sm text-blue-700 underline"
             style={{ cursor: 'pointer' }}
           >
