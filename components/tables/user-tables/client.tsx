@@ -27,7 +27,7 @@ export const UserClient: React.FC = () => {
       if (loadData) {
         try {
           const response = await axios.get('/api/users');
-          setUsers(response.data);
+          setUsers(response.data.users);
         } catch (error) {
           // eslint-disable-next-line no-console
           console.error('Failed to fetch users:', error);
@@ -54,7 +54,14 @@ export const UserClient: React.FC = () => {
         </Button>
       </div>
       <Separator />
-      <DataTable searchKey="name" columns={columns} data={users} />
+      <DataTable
+        searchKey="name"
+        columns={columns}
+        data={users}
+        pageNo={1}
+        totalUsers={0}
+        pageCount={0}
+      />
     </>
   );
 };

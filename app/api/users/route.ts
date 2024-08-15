@@ -48,8 +48,15 @@ export const POST = async (request: any) => {
     });
   }
 };
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const { searchParams } = new URL(request.url);
+    const page = Math.max(parseInt(searchParams.get('page') || '1', 10), 1);
+    const pageSize = parseInt(searchParams.get('pageSize') || '10', 10);
+
+    const skip = (page - 1) * pageSize;
+    const take = pageSize;
+
     const users = await prisma.user.findMany({
       include: {
         roles: {
@@ -65,10 +72,23 @@ export async function GET() {
       },
       orderBy: {
         createdAt: 'desc'
-      }
+      },
+      skip, // Skip the previous pages
+      take // Limit to the number of users per page
     });
 
-    return NextResponse.json(users);
+    // Get the total count of users for pagination metadata
+    const totalUsers = await prisma.user.count();
+
+    return NextResponse.json({
+      users,
+      meta: {
+        totalUsers,
+        page,
+        pageSize,
+        totalPages: Math.ceil(totalUsers / pageSize)
+      }
+    });
   } catch (error) {
     // eslint-disable-next-line no-console
     console.error('Failed to fetch users:', error);

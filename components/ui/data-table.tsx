@@ -36,6 +36,7 @@ import { ScrollArea, ScrollBar } from './scroll-area';
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react';
+import axios from 'axios';
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -63,13 +64,33 @@ export function DataTable<TData, TValue>({
   const [sorting, setSorting] = useState<SortingState>([]);
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: pageNo - 1,
-    pageSize: pageSizeOptions[0]
+    pageSize: 10
   });
+
+  // Initialize pagination from search params
+  useEffect(() => {
+    const pageParam = searchParams.get('page');
+    const limitParam = searchParams.get('pageSize');
+    if (pageParam) {
+      setPagination((prev) => ({
+        ...prev,
+        pageIndex: parseInt(pageParam as string, 10) - 1
+      }));
+    }
+    if (limitParam) {
+      setPagination((prev) => ({
+        ...prev,
+        pageSize: parseInt(limitParam as string, 10)
+      }));
+    }
+  }, [searchParams]);
 
   // Create query string
   const createQueryString = useCallback(
     (params: Record<string, string | number | null>) => {
-      const newSearchParams = new URLSearchParams(searchParams?.toString());
+      const newSearchParams = new URLSearchParams(
+        searchParams?.toString() || ''
+      );
 
       for (const [key, value] of Object.entries(params)) {
         if (value === null) {
@@ -83,17 +104,31 @@ export function DataTable<TData, TValue>({
     },
     [searchParams]
   );
+  async function fetchData(page: number, pageSize: number) {
+    try {
+      const response = await axios.get('/api/users', {
+        params: {
+          page,
+          pageSize
+        }
+      });
+      return response.data;
+    } catch (error) {
+      return { data: [], totalUsers: 0 };
+    }
+  }
 
   useEffect(() => {
-    router.push(
-      `${pathname}?${createQueryString({
-        page: pagination.pageIndex + 1,
-        limit: pagination.pageSize
-      })}`,
-      {
-        scroll: false
-      }
-    );
+    const fetchDataAsync = async () => {
+      const response = await fetchData(
+        pagination.pageIndex + 1,
+        pagination.pageSize
+      );
+      // setTableData(response.data);
+      // setTotalRecords(response.totalUsers);
+    };
+
+    fetchDataAsync();
   }, [pagination, createQueryString, pathname, router]);
 
   const table = useReactTable({
@@ -116,29 +151,29 @@ export function DataTable<TData, TValue>({
   const searchValue = table.getColumn(searchKey)?.getFilterValue() as string;
 
   useEffect(() => {
-    if (searchValue?.length > 0) {
-      router.push(
-        `${pathname}?${createQueryString({
-          page: null,
-          limit: null,
-          search: searchValue
-        })}`,
-        {
-          scroll: false
-        }
-      );
-    } else {
-      router.push(
-        `${pathname}?${createQueryString({
-          page: null,
-          limit: null,
-          search: null
-        })}`,
-        {
-          scroll: false
-        }
-      );
-    }
+    // if (searchValue?.length > 0) {
+    //   router.push(
+    //     `${pathname}?${createQueryString({
+    //       page: null,
+    //       pageSize: null,
+    //       search: searchValue
+    //     })}`,
+    //     {
+    //       scroll: false
+    //     }
+    //   );
+    // } else {
+    //   router.push(
+    //     `${pathname}?${createQueryString({
+    //       page: null,
+    //       pageSize: null,
+    //       search: null
+    //     })}`,
+    //     {
+    //       scroll: false
+    //     }
+    //   );
+    // }
 
     setPagination((prev) => ({ ...prev, pageIndex: 0 }));
   }, [searchValue, createQueryString, pathname, router]);
