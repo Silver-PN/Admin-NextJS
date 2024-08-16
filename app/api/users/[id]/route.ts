@@ -68,12 +68,21 @@ export async function DELETE(
   const { id } = params;
 
   try {
+    await prisma.userPermission.deleteMany({
+      where: { userId: parseInt(id) }
+    });
+
+    await prisma.userRole.deleteMany({
+      where: { userId: parseInt(id) }
+    });
+
     const deletedUser = await prisma.user.delete({
       where: { id: parseInt(id) }
     });
 
     return NextResponse.json(deletedUser);
   } catch (error) {
+    console.error('Error deleting user:', error);
     return NextResponse.json(
       { error: 'Internal Server Error' },
       { status: 500 }
