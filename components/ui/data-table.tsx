@@ -47,10 +47,15 @@ interface DataTableProps<TData, TValue> {
   pageSizeOptions?: number[];
   pageCount: number;
 }
-
+interface MetaType {
+  totalUsers: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+}
 export function DataTable<TData, TValue>({
   columns,
-  data,
+  data: initialData,
   searchKey,
   pageNo,
   totalUsers,
@@ -60,7 +65,8 @@ export function DataTable<TData, TValue>({
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-
+  const [data, setData] = useState<TData[]>(initialData);
+  const [meta, setMeta] = useState<MetaType | undefined>(undefined);
   const [sorting, setSorting] = useState<SortingState>([]);
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: pageNo - 1,
@@ -68,22 +74,22 @@ export function DataTable<TData, TValue>({
   });
 
   // Initialize pagination from search params
-  useEffect(() => {
-    const pageParam = searchParams.get('page');
-    const limitParam = searchParams.get('pageSize');
-    if (pageParam) {
-      setPagination((prev) => ({
-        ...prev,
-        pageIndex: parseInt(pageParam as string, 10) - 1
-      }));
-    }
-    if (limitParam) {
-      setPagination((prev) => ({
-        ...prev,
-        pageSize: parseInt(limitParam as string, 10)
-      }));
-    }
-  }, [searchParams]);
+  // useEffect(() => {
+  //   const pageParam = searchParams.get('page');
+  //   const limitParam = searchParams.get('pageSize');
+  //   if (pageParam) {
+  //     setPagination((prev) => ({
+  //       ...prev,
+  //       pageIndex: parseInt(pageParam as string, 10) - 1
+  //     }));
+  //   }
+  //   if (limitParam) {
+  //     setPagination((prev) => ({
+  //       ...prev,
+  //       pageSize: parseInt(limitParam as string, 10)
+  //     }));
+  //   }
+  // }, [searchParams]);
 
   // Create query string
   const createQueryString = useCallback(
@@ -124,6 +130,8 @@ export function DataTable<TData, TValue>({
         pagination.pageIndex + 1,
         pagination.pageSize
       );
+      setData(response.users);
+      setMeta(response.meta);
       // setTableData(response.data);
       // setTotalRecords(response.totalUsers);
     };
@@ -177,17 +185,46 @@ export function DataTable<TData, TValue>({
 
     setPagination((prev) => ({ ...prev, pageIndex: 0 }));
   }, [searchValue, createQueryString, pathname, router]);
+  const generatePageNumbers = (currentPage: number, totalPages: number) => {
+    const maxPageNumbersToShow = 3;
+    const halfRange = Math.floor(maxPageNumbersToShow / 2);
 
+    // Handle edge cases where there are fewer pages than needed
+    if (totalPages <= maxPageNumbersToShow) {
+      return Array.from({ length: totalPages }, (_, index) => index + 1);
+    }
+
+    let startPage = Math.max(1, currentPage - halfRange);
+    let endPage = Math.min(totalPages, currentPage + halfRange);
+
+    if (endPage - startPage + 1 < maxPageNumbersToShow) {
+      if (currentPage <= halfRange) {
+        endPage = Math.min(totalPages, startPage + maxPageNumbersToShow - 1);
+      } else {
+        startPage = Math.max(1, endPage - maxPageNumbersToShow + 1);
+      }
+    }
+
+    return Array.from(
+      { length: endPage - startPage + 1 },
+      (_, index) => startPage + index
+    );
+  };
+
+  const pageNumbers = generatePageNumbers(
+    meta?.page || 1,
+    meta?.totalPages || 1
+  );
   return (
     <>
-      <Input
+      {/* <Input
         placeholder={`Search ${searchKey}...`}
         value={(table.getColumn(searchKey)?.getFilterValue() as string) ?? ''}
         onChange={(event) =>
           table.getColumn(searchKey)?.setFilterValue(event.target.value)
         }
         className="w-full md:max-w-sm"
-      />
+      /> */}
       <ScrollArea className="h-[calc(80vh-220px)] rounded-md border md:h-[calc(80dvh-200px)]">
         <Table className="relative">
           <TableHeader>
@@ -272,16 +309,25 @@ export function DataTable<TData, TValue>({
         </div>
         <div className="flex w-full items-center justify-between gap-2 sm:justify-end">
           <div className="flex w-[100px] items-center justify-center text-sm font-medium">
-            Page {table.getState().pagination.pageIndex + 1} of{' '}
-            {table.getPageCount()}
+            {meta ? (
+              <>
+                Page {meta.page} of {meta.totalPages}
+              </>
+            ) : (
+              <>
+                Page {table.getState().pagination.pageIndex + 1} of{' '}
+                {table.getPageCount()}
+              </>
+            )}
           </div>
+
           <div className="flex items-center space-x-2">
             <Button
               aria-label="Go to first page"
               variant="outline"
               className="hidden h-8 w-8 p-0 lg:flex"
               onClick={() => table.setPageIndex(0)}
-              disabled={!table.getCanPreviousPage()}
+              disabled={meta ? meta.page <= 1 : !table.getCanPreviousPage()}
             >
               <DoubleArrowLeftIcon className="h-4 w-4" aria-hidden="true" />
             </Button>
@@ -290,16 +336,35 @@ export function DataTable<TData, TValue>({
               variant="outline"
               className="h-8 w-8 p-0"
               onClick={() => table.previousPage()}
-              disabled={!table.getCanPreviousPage()}
+              disabled={meta ? meta.page <= 1 : !table.getCanPreviousPage()}
             >
               <ChevronLeftIcon className="h-4 w-4" aria-hidden="true" />
             </Button>
+            {pageNumbers.map((pageNumber) => (
+              <Button
+                key={pageNumber}
+                aria-label={`Go to page ${pageNumber}`}
+                variant="outline"
+                className={`h-8 w-8 p-0 ${
+                  meta
+                    ? meta.page === pageNumber
+                      ? 'bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-100'
+                      : 'bg-transparent text-gray-600 dark:text-gray-400'
+                    : ''
+                }`}
+                onClick={() => table.setPageIndex(pageNumber - 1)}
+              >
+                {pageNumber}
+              </Button>
+            ))}
             <Button
               aria-label="Go to next page"
               variant="outline"
               className="h-8 w-8 p-0"
               onClick={() => table.nextPage()}
-              disabled={!table.getCanNextPage()}
+              disabled={
+                meta ? meta.page >= meta.totalPages : !table.getCanNextPage()
+              }
             >
               <ChevronRightIcon className="h-4 w-4" aria-hidden="true" />
             </Button>
@@ -307,8 +372,10 @@ export function DataTable<TData, TValue>({
               aria-label="Go to last page"
               variant="outline"
               className="hidden h-8 w-8 p-0 lg:flex"
-              onClick={() => table.setPageIndex(table.getPageCount() - 1)}
-              disabled={!table.getCanNextPage()}
+              onClick={() => table.setPageIndex(meta ? meta.totalPages - 1 : 0)}
+              disabled={
+                meta ? meta.page >= meta.totalPages : !table.getCanNextPage()
+              }
             >
               <DoubleArrowRightIcon className="h-4 w-4" aria-hidden="true" />
             </Button>

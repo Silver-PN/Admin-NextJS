@@ -20,6 +20,7 @@ import axios from 'axios';
 export const UserClient: React.FC = () => {
   const router = useRouter();
   const [users, setUsers] = useState([]);
+
   const [loadData, setLoadData] = useState(true);
 
   useEffect(() => {
