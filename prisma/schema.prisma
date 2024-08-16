@@ -23,6 +23,7 @@ model User {
   permissions UserPermission[]
   createdAt DateTime @default(now()) 
   updatedAt DateTime @updatedAt     
+  @@map("users")
 }
 
 model Product {
@@ -38,6 +39,7 @@ model Product {
   rating        Float
   createdAt DateTime @default(now()) 
   updatedAt DateTime @updatedAt   
+  @@map("products")
 }
 
 model Role {
@@ -47,15 +49,18 @@ model Role {
   permissions RolePermission[]
   createdAt DateTime @default(now()) 
   updatedAt DateTime @updatedAt  
+  @@map("roles")
 }
 
 model Permission {
   id    Int    @id @default(autoincrement())
-  name  String @unique
+  permissionCode String @unique
+  name  String
   roles RolePermission[]
   users UserPermission[]
   createdAt DateTime @default(now()) 
   updatedAt DateTime @updatedAt 
+  @@map("permissions")
 }
 
 model UserRole {
@@ -66,6 +71,7 @@ model UserRole {
   @@id([userId, roleId])
   createdAt DateTime @default(now()) 
   updatedAt DateTime @updatedAt 
+  @@map("user_roles")
 }
 
 model UserPermission {
@@ -76,6 +82,7 @@ model UserPermission {
   @@id([userId, permissionId])
   createdAt DateTime @default(now()) 
   updatedAt DateTime @updatedAt 
+  @@map("user_permissions")
 }
 
 model RolePermission {
@@ -86,4 +93,5 @@ model RolePermission {
   @@id([roleId, permissionId])
   createdAt DateTime @default(now()) 
   updatedAt DateTime @updatedAt 
+  @@map("role_permissions")
 }
