@@ -39,7 +39,7 @@ export default function UserAuthForm() {
     defaultValues: {
       username: '',
       password: '',
-      loginType: 'sql' // Set a default value if needed
+      loginType: '1' // Set a default value if needed
     }
   });
 
@@ -170,11 +170,11 @@ export default function UserAuthForm() {
                   >
                     <div className="flex justify-center space-x-4">
                       <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="ldap" id="ldap" />
+                        <RadioGroupItem value="2" id="ldap" />
                         <Label htmlFor="ldap">User Domain</Label>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="sql" id="sql" />
+                        <RadioGroupItem value="1" id="sql" />
                         <Label htmlFor="sql">User Local</Label>
                       </div>
                     </div>

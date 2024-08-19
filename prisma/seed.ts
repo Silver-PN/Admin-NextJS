@@ -110,7 +110,48 @@ async function main() {
     data: rolePermissionsData,
     skipDuplicates: true
   });
+  //Define seeded method login
+  const methodLogins = [
+    {
+      id: 1,
+      name: 'Local',
+      type: 'Credentials',
+      config: {
+        encryption: 'bcrypt'
+      }
+    },
+    {
+      id: 2,
+      name: 'LDAP',
+      type: 'LDAP',
+      config: {
+        ldapUri: 'ldap://192.168.1.15',
+        baseDn: 'ou=people,dc=katalyst,dc=local'
+      }
+    },
+    {
+      id: 3,
+      name: 'Google',
+      type: 'OAuth',
+      config: {
+        clientId: 'your-google-client-id',
+        clientSecret: 'your-google-client-secret'
+      }
+    }
+  ];
 
+  for (const methodLogin of methodLogins) {
+    await prisma.methodLogin.upsert({
+      where: { id: methodLogin.id },
+      update: {},
+      create: {
+        id: methodLogin.id,
+        name: methodLogin.name,
+        type: methodLogin.type,
+        config: methodLogin.config
+      }
+    });
+  }
   // Define users to be seeded
   const users = [
     {
@@ -120,7 +161,8 @@ async function main() {
       password: '123123123',
       roles: ['admin'],
       permissions: [],
-      permissions_deny: []
+      permissions_deny: [],
+      method_login_id: 1
     },
     {
       email: 'employee@gmail.com',
@@ -129,7 +171,8 @@ async function main() {
       password: '123123123',
       roles: ['employee'],
       permissions: ['customer_read'],
-      permissions_deny: ['employee_delete']
+      permissions_deny: ['employee_delete'],
+      method_login_id: 1
     },
     {
       email: 'customer@gmail.com',
@@ -138,7 +181,18 @@ async function main() {
       password: '123123123',
       roles: ['customer'],
       permissions: [],
-      permissions_deny: []
+      permissions_deny: [],
+      method_login_id: 1
+    },
+    {
+      email: 'namnguyen137@gmail.com',
+      username: 'nnguyen',
+      name: 'Phương Nam',
+      password: '123123123',
+      roles: ['admin'],
+      permissions: [],
+      permissions_deny: [],
+      method_login_id: 2
     }
   ];
 
@@ -149,7 +203,8 @@ async function main() {
         email: user.email,
         username: user.username,
         name: user.name,
-        password: hashedPassword
+        password: hashedPassword,
+        method_login_id: user.method_login_id
       }
     });
 
