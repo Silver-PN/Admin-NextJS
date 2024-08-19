@@ -21,23 +21,24 @@ export const UserClient: React.FC = () => {
   const router = useRouter();
   const [users, setUsers] = useState([]);
 
-  const [loadData, setLoadData] = useState(true);
+  // const [loadData, setLoadData] = useState(true);
 
-  useEffect(() => {
-    const fetchUsers = async () => {
-      if (loadData) {
-        try {
-          const response = await axios.get('/api/users');
-          setUsers(response.data.users);
-        } catch (error) {
-          // eslint-disable-next-line no-console
-          console.error('Failed to fetch users:', error);
+  async function fetchData(page: number, pageSize: number) {
+    try {
+      const response = await axios.get('/api/users', {
+        params: {
+          page,
+          pageSize
         }
-        setLoadData(false);
-      }
-    };
-    fetchUsers();
-  }, [loadData]);
+      });
+      return response.data;
+    } catch (error) {
+      return { data: [], totalUsers: 0 };
+    }
+  }
+  // useEffect(() => {
+  //   fetchData(1, 10);
+  // }, [loadData]);
 
   return (
     <>
@@ -62,6 +63,7 @@ export const UserClient: React.FC = () => {
         pageNo={1}
         totalUsers={0}
         pageCount={0}
+        fetchData={fetchData}
       />
     </>
   );

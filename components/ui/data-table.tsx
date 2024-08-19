@@ -7,7 +7,6 @@ import {
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
-  PaginationState,
   SortingState,
   useReactTable
 } from '@tanstack/react-table';
@@ -30,14 +29,21 @@ import {
   DoubleArrowLeftIcon,
   DoubleArrowRightIcon
 } from '@radix-ui/react-icons';
-import { Input } from './input';
+// import { Input } from './input';
 import { Button } from './button';
 import { ScrollArea, ScrollBar } from './scroll-area';
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react';
 import axios from 'axios';
-
+interface PaginationState {
+  pageIndex: number;
+  pageSize: number;
+}
+interface Response {
+  users: any;
+  meta: any;
+}
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
@@ -46,6 +52,7 @@ interface DataTableProps<TData, TValue> {
   totalUsers: number;
   pageSizeOptions?: number[];
   pageCount: number;
+  fetchData: (pageIndex: number, pageSize: number) => Promise<void>;
 }
 interface MetaType {
   totalUsers: number;
@@ -53,6 +60,7 @@ interface MetaType {
   pageSize: number;
   totalPages: number;
 }
+
 export function DataTable<TData, TValue>({
   columns,
   data: initialData,
@@ -60,7 +68,8 @@ export function DataTable<TData, TValue>({
   pageNo,
   totalUsers,
   pageCount,
-  pageSizeOptions = [1, 2, 5, 10, 20, 30, 40, 50]
+  pageSizeOptions = [1, 2, 5, 10, 20, 30, 40, 50],
+  fetchData
 }: DataTableProps<TData, TValue>) {
   const router = useRouter();
   const pathname = usePathname();
@@ -71,6 +80,10 @@ export function DataTable<TData, TValue>({
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: pageNo - 1,
     pageSize: 10
+  });
+  const [oldPagination, setOldPagination] = useState<PaginationState>({
+    pageIndex: 0,
+    pageSize: 0
   });
 
   // Initialize pagination from search params
@@ -110,34 +123,25 @@ export function DataTable<TData, TValue>({
     },
     [searchParams]
   );
-  async function fetchData(page: number, pageSize: number) {
-    try {
-      const response = await axios.get('/api/users', {
-        params: {
-          page,
-          pageSize
-        }
-      });
-      return response.data;
-    } catch (error) {
-      return { data: [], totalUsers: 0 };
-    }
-  }
 
   useEffect(() => {
-    const fetchDataAsync = async () => {
-      const response = await fetchData(
-        pagination.pageIndex + 1,
-        pagination.pageSize
-      );
+    const fetchDataAsync = async (pageIndex: number, pageSize: number) => {
+      const response = await fetchData(pageIndex, pageSize);
       setData(response.users);
       setMeta(response.meta);
-      // setTableData(response.data);
-      // setTotalRecords(response.totalUsers);
     };
-
-    fetchDataAsync();
-  }, [pagination, createQueryString, pathname, router]);
+    if (
+      oldPagination.pageIndex !== pagination.pageIndex ||
+      oldPagination.pageSize !== pagination.pageSize
+    ) {
+      if (oldPagination.pageSize !== pagination.pageSize) {
+        fetchDataAsync(1, pagination.pageSize);
+      } else {
+        fetchDataAsync(pagination.pageIndex + 1, pagination.pageSize);
+      }
+      setOldPagination(pagination);
+    }
+  }, [pagination, fetchData, oldPagination.pageIndex, oldPagination.pageSize]);
 
   const table = useReactTable({
     data,
