@@ -1,9 +1,10 @@
 import GithubProvider from 'next-auth/providers/github';
-import NextAuth, { AuthOptions } from 'next-auth';
+import NextAuth, { AuthOptions, CredentialsInputs } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
-// import ldap from 'ldapjs';
+import ldap from 'ldapjs';
 import bcrypt from 'bcryptjs';
 import prisma from '@/lib/db';
+
 export const authOptions: AuthOptions = {
   providers: [
     GithubProvider({
@@ -18,28 +19,69 @@ export const authOptions: AuthOptions = {
       },
       async authorize(credentials) {
         if (!credentials) {
-          console.error('No credentials provided');
+          // console.error('No credentials provided');
           return null;
         }
 
-        const { username, password } = credentials;
-
+        const { username, password, loginType } =
+          credentials as CredentialsInputs;
         try {
-          const user = await prisma.user.findUnique({
-            where: { username }
+          const user = await prisma.user.findFirst({
+            where: {
+              username,
+              method_login_id: Number(loginType)
+            },
+            include: {
+              loginMethod: true
+            }
           });
 
           if (!user) {
-            console.error(`User not found: ${username}`);
+            // console.error(`User not found: ${username}`);
             return null;
           }
 
-          const isPasswordValid = await bcrypt.compare(password, user.password);
-          if (!isPasswordValid) {
-            console.error('Invalid password');
-            return null;
+          // Handle different authentication methods
+          if (user.method_login_id == Number(process.env.LOCAL_LOGIN)) {
+            // Local authentication with bcrypt
+            const isPasswordValid = await bcrypt.compare(
+              password,
+              user.password
+            );
+            if (!isPasswordValid) {
+              // console.error('Invalid password');
+              return null;
+            }
+          } else if (user.method_login_id == Number(process.env.LDAP_LOGIN)) {
+            // LDAP authentication
+            const ldapAuth = new Promise<boolean>((resolve, reject) => {
+              const client = ldap.createClient({
+                url: user.loginMethod.config.ldapUri!
+              });
+
+              client.bind(
+                `uid=${username},${user.loginMethod.config.baseDn}`,
+                password,
+                (err: any) => {
+                  client.unbind();
+                  if (err) {
+                    // console.error('LDAP authentication failed:', err);
+                    resolve(false);
+                  } else {
+                    // console.log('LDAP authentication successful');
+                    resolve(true);
+                  }
+                }
+              );
+            });
+
+            const isAuthenticated = await ldapAuth;
+            if (!isAuthenticated) {
+              return null; // Return null if authentication fails
+            }
           }
 
+          // Fetch user with permissions after successful authentication
           const userWithPermissions = await prisma.user.findUnique({
             where: { username },
             include: {
@@ -54,10 +96,9 @@ export const authOptions: AuthOptions = {
           const permissions =
             userWithPermissions?.permissions.map((up) => up.permission.name) ||
             [];
-
           return { user, permissions };
         } catch (error) {
-          console.error('Error during authentication:', error);
+          // console.error('Error during authentication:', error);
           return null;
         }
       }
