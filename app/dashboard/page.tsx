@@ -383,6 +383,10 @@ export default function App() {
                       }}
                       editor={DecoupledEditor}
                       config={editorConfig}
+                      onChange={(event, editor) => {
+                        const data = editor.getData();
+                        console.log({ event, editor, data });
+                      }}
                     />
                   )}
                 </div>
