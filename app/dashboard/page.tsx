@@ -1,168 +1,399 @@
-import { AreaGraph } from '@/components/charts/area-graph';
-import { BarGraph } from '@/components/charts/bar-graph';
-import { PieGraph } from '@/components/charts/pie-graph';
-import { CalendarDateRangePicker } from '@/components/date-range-picker';
-import PageContainer from '@/components/layout/page-container';
-import { RecentSales } from '@/components/recent-sales';
-import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle
-} from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+'use client';
 
-export default function page() {
+import { useState, useEffect, useRef } from 'react';
+import { CKEditor } from '@ckeditor/ckeditor5-react';
+
+import {
+  DecoupledEditor,
+  AccessibilityHelp,
+  Alignment,
+  Autoformat,
+  AutoImage,
+  AutoLink,
+  Autosave,
+  BalloonToolbar,
+  BlockQuote,
+  Bold,
+  Code,
+  Essentials,
+  FindAndReplace,
+  FontBackgroundColor,
+  FontColor,
+  FontFamily,
+  FontSize,
+  GeneralHtmlSupport,
+  Heading,
+  Highlight,
+  HorizontalLine,
+  HtmlComment,
+  HtmlEmbed,
+  ImageBlock,
+  ImageCaption,
+  ImageInline,
+  ImageInsert,
+  ImageInsertViaUrl,
+  ImageResize,
+  ImageStyle,
+  ImageTextAlternative,
+  ImageToolbar,
+  ImageUpload,
+  Indent,
+  IndentBlock,
+  Italic,
+  Link,
+  LinkImage,
+  List,
+  ListProperties,
+  Markdown,
+  MediaEmbed,
+  Mention,
+  Minimap,
+  PageBreak,
+  Paragraph,
+  PasteFromMarkdownExperimental,
+  PasteFromOffice,
+  RemoveFormat,
+  SelectAll,
+  ShowBlocks,
+  SimpleUploadAdapter,
+  SpecialCharacters,
+  SpecialCharactersArrows,
+  SpecialCharactersCurrency,
+  SpecialCharactersEssentials,
+  SpecialCharactersLatin,
+  SpecialCharactersMathematical,
+  SpecialCharactersText,
+  Strikethrough,
+  Subscript,
+  Superscript,
+  Table,
+  TableCaption,
+  TableCellProperties,
+  TableColumnResize,
+  TableProperties,
+  TableToolbar,
+  TextTransformation,
+  TodoList,
+  Underline,
+  Undo
+} from 'ckeditor5';
+
+import translations from 'ckeditor5/translations/vi.js';
+
+import 'ckeditor5/ckeditor5.css';
+
+import './App.css';
+
+export default function App() {
+  const editorContainerRef = useRef(null);
+  const editorMenuBarRef = useRef(null);
+  const editorToolbarRef = useRef(null);
+  const editorRef = useRef(null);
+  const editorMinimapRef = useRef(null);
+  const [isLayoutReady, setIsLayoutReady] = useState(false);
+
+  useEffect(() => {
+    setIsLayoutReady(true);
+
+    return () => setIsLayoutReady(false);
+  }, []);
+
+  const editorConfig = {
+    toolbar: {
+      items: [
+        'undo',
+        'redo',
+        '|',
+        'showBlocks',
+        '|',
+        'heading',
+        '|',
+        'fontSize',
+        'fontFamily',
+        'fontColor',
+        'fontBackgroundColor',
+        '|',
+        'bold',
+        'italic',
+        'underline',
+        '|',
+        'link',
+        'insertImage',
+        'insertTable',
+        'highlight',
+        'blockQuote',
+        '|',
+        'alignment',
+        '|',
+        'bulletedList',
+        'numberedList',
+        'todoList',
+        'outdent',
+        'indent'
+      ],
+      shouldNotGroupWhenFull: false
+    },
+    plugins: [
+      AccessibilityHelp,
+      Alignment,
+      Autoformat,
+      AutoImage,
+      AutoLink,
+      Autosave,
+      BalloonToolbar,
+      BlockQuote,
+      Bold,
+      Code,
+      Essentials,
+      FindAndReplace,
+      FontBackgroundColor,
+      FontColor,
+      FontFamily,
+      FontSize,
+      GeneralHtmlSupport,
+      Heading,
+      Highlight,
+      HorizontalLine,
+      HtmlComment,
+      HtmlEmbed,
+      ImageBlock,
+      ImageCaption,
+      ImageInline,
+      ImageInsert,
+      ImageInsertViaUrl,
+      ImageResize,
+      ImageStyle,
+      ImageTextAlternative,
+      ImageToolbar,
+      ImageUpload,
+      Indent,
+      IndentBlock,
+      Italic,
+      Link,
+      LinkImage,
+      List,
+      ListProperties,
+      Markdown,
+      MediaEmbed,
+      Mention,
+      Minimap,
+      PageBreak,
+      Paragraph,
+      PasteFromMarkdownExperimental,
+      PasteFromOffice,
+      RemoveFormat,
+      SelectAll,
+      ShowBlocks,
+      SimpleUploadAdapter,
+      SpecialCharacters,
+      SpecialCharactersArrows,
+      SpecialCharactersCurrency,
+      SpecialCharactersEssentials,
+      SpecialCharactersLatin,
+      SpecialCharactersMathematical,
+      SpecialCharactersText,
+      Strikethrough,
+      Subscript,
+      Superscript,
+      Table,
+      TableCaption,
+      TableCellProperties,
+      TableColumnResize,
+      TableProperties,
+      TableToolbar,
+      TextTransformation,
+      TodoList,
+      Underline,
+      Undo
+    ],
+    balloonToolbar: [
+      'bold',
+      'italic',
+      '|',
+      'link',
+      'insertImage',
+      '|',
+      'bulletedList',
+      'numberedList'
+    ],
+    fontFamily: {
+      supportAllValues: true
+    },
+    fontSize: {
+      options: [10, 12, 14, 'default', 18, 20, 22],
+      supportAllValues: true
+    },
+    heading: {
+      options: [
+        {
+          model: 'paragraph',
+          title: 'Paragraph',
+          class: 'ck-heading_paragraph'
+        },
+        {
+          model: 'heading1',
+          view: 'h1',
+          title: 'Heading 1',
+          class: 'ck-heading_heading1'
+        },
+        {
+          model: 'heading2',
+          view: 'h2',
+          title: 'Heading 2',
+          class: 'ck-heading_heading2'
+        },
+        {
+          model: 'heading3',
+          view: 'h3',
+          title: 'Heading 3',
+          class: 'ck-heading_heading3'
+        },
+        {
+          model: 'heading4',
+          view: 'h4',
+          title: 'Heading 4',
+          class: 'ck-heading_heading4'
+        },
+        {
+          model: 'heading5',
+          view: 'h5',
+          title: 'Heading 5',
+          class: 'ck-heading_heading5'
+        },
+        {
+          model: 'heading6',
+          view: 'h6',
+          title: 'Heading 6',
+          class: 'ck-heading_heading6'
+        }
+      ]
+    },
+    htmlSupport: {
+      allow: [
+        {
+          name: /^.*$/,
+          styles: true,
+          attributes: true,
+          classes: true
+        }
+      ]
+    },
+    image: {
+      toolbar: [
+        'toggleImageCaption',
+        'imageTextAlternative',
+        '|',
+        'imageStyle:inline',
+        'imageStyle:wrapText',
+        'imageStyle:breakText',
+        '|',
+        'resizeImage'
+      ]
+    },
+    initialData:
+      '<h2>Congratulations on setting up CKEditor 5! 🎉</h2>\n<p>\n    You\'ve successfully created a CKEditor 5 project. This powerful text editor will enhance your application, enabling rich text editing\n    capabilities that are customizable and easy to use.\n</p>\n<h3>What\'s next?</h3>\n<ol>\n    <li>\n        <strong>Integrate into your app</strong>: time to bring the editing into your application. Take the code you created and add to your\n        application.\n    </li>\n    <li>\n        <strong>Explore features:</strong> Experiment with different plugins and toolbar options to discover what works best for your needs.\n    </li>\n    <li>\n        <strong>Customize your editor:</strong> Tailor the editor\'s configuration to match your application\'s style and requirements. Or even\n        write your plugin!\n    </li>\n</ol>\n<p>\n    Keep experimenting, and don\'t hesitate to push the boundaries of what you can achieve with CKEditor 5. Your feedback is invaluable to us\n    as we strive to improve and evolve. Happy editing!\n</p>\n<h3>Helpful resources</h3>\n<ul>\n    <li>📝 <a href="https://orders.ckeditor.com/trial/premium-features">Trial sign up</a>,</li>\n    <li>📕 <a href="https://ckeditor.com/docs/ckeditor5/latest/installation/index.html">Documentation</a>,</li>\n    <li>⭐️ <a href="https://github.com/ckeditor/ckeditor5">GitHub</a> (star us if you can!),</li>\n    <li>🏠 <a href="https://ckeditor.com">CKEditor Homepage</a>,</li>\n    <li>🧑‍💻 <a href="https://ckeditor.com/ckeditor-5/demo/">CKEditor 5 Demos</a>,</li>\n</ul>\n<h3>Need help?</h3>\n<p>\n    See this text, but the editor is not starting up? Check the browser\'s console for clues and guidance. It may be related to an incorrect\n    license key if you use premium features or another feature-related requirement. If you cannot make it work, file a GitHub issue, and we\n    will help as soon as possible!\n</p>\n',
+    language: 'vi',
+    link: {
+      addTargetToExternalLinks: true,
+      defaultProtocol: 'https://',
+      decorators: {
+        toggleDownloadable: {
+          mode: 'manual',
+          label: 'Downloadable',
+          attributes: {
+            download: 'file'
+          }
+        }
+      }
+    },
+    list: {
+      properties: {
+        styles: true,
+        startIndex: true,
+        reversed: true
+      }
+    },
+    mention: {
+      feeds: [
+        {
+          marker: '@',
+          feed: [
+            /* See: https://ckeditor.com/docs/ckeditor5/latest/features/mentions.html */
+          ]
+        }
+      ]
+    },
+    menuBar: {
+      isVisible: true
+    },
+    minimap: {
+      container: editorMinimapRef.current,
+      extraClasses:
+        'editor-container_include-minimap ck-minimap__iframe-content'
+    },
+    placeholder: 'Type or paste your content here!',
+    table: {
+      contentToolbar: [
+        'tableColumn',
+        'tableRow',
+        'mergeTableCells',
+        'tableProperties',
+        'tableCellProperties'
+      ]
+    },
+    translations: [translations]
+  };
+
   return (
-    <PageContainer scrollable={true}>
-      <div className="space-y-2">
-        <div className="flex items-center justify-between space-y-2">
-          <h2 className="text-2xl font-bold tracking-tight">
-            Hi, Welcome back 👋
-          </h2>
-          <div className="hidden items-center space-x-2 md:flex">
-            <CalendarDateRangePicker />
-            <Button>Download</Button>
+    <div>
+      <div className="main-container">
+        <div
+          className="editor-container editor-container_document-editor editor-container_include-minimap"
+          ref={editorContainerRef}
+        >
+          <div
+            className="editor-container__menu-bar"
+            ref={editorMenuBarRef}
+          ></div>
+          <div
+            className="editor-container__toolbar"
+            ref={editorToolbarRef}
+          ></div>
+          <div className="editor-container__minimap-wrapper">
+            <div className="editor-container__editor-wrapper">
+              <div className="editor-container__editor">
+                <div ref={editorRef}>
+                  {isLayoutReady && (
+                    <CKEditor
+                      onReady={(editor) => {
+                        editorToolbarRef.current.appendChild(
+                          editor.ui.view.toolbar.element
+                        );
+                        editorMenuBarRef.current.appendChild(
+                          editor.ui.view.menuBarView.element
+                        );
+                      }}
+                      onAfterDestroy={() => {
+                        Array.from(editorToolbarRef.current.children).forEach(
+                          (child) => child.remove()
+                        );
+                        Array.from(editorMenuBarRef.current.children).forEach(
+                          (child) => child.remove()
+                        );
+                      }}
+                      editor={DecoupledEditor}
+                      config={editorConfig}
+                    />
+                  )}
+                </div>
+              </div>
+            </div>
+            <div className="editor-container__sidebar editor-container__sidebar_minimap">
+              <div ref={editorMinimapRef}></div>
+            </div>
           </div>
         </div>
-        <Tabs defaultValue="overview" className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="analytics" disabled>
-              Analytics
-            </TabsTrigger>
-          </TabsList>
-          <TabsContent value="overview" className="space-y-4">
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">
-                    Total Revenue
-                  </CardTitle>
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    className="h-4 w-4 text-muted-foreground"
-                  >
-                    <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-                  </svg>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">$45,231.89</div>
-                  <p className="text-xs text-muted-foreground">
-                    +20.1% from last month
-                  </p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">
-                    Subscriptions
-                  </CardTitle>
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    className="h-4 w-4 text-muted-foreground"
-                  >
-                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-                    <circle cx="9" cy="7" r="4" />
-                    <path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
-                  </svg>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">+2350</div>
-                  <p className="text-xs text-muted-foreground">
-                    +180.1% from last month
-                  </p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Sales</CardTitle>
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    className="h-4 w-4 text-muted-foreground"
-                  >
-                    <rect width="20" height="14" x="2" y="5" rx="2" />
-                    <path d="M2 10h20" />
-                  </svg>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">+12,234</div>
-                  <p className="text-xs text-muted-foreground">
-                    +19% from last month
-                  </p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">
-                    Active Now
-                  </CardTitle>
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    className="h-4 w-4 text-muted-foreground"
-                  >
-                    <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
-                  </svg>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">+573</div>
-                  <p className="text-xs text-muted-foreground">
-                    +201 since last hour
-                  </p>
-                </CardContent>
-              </Card>
-            </div>
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-7">
-              <div className="col-span-4">
-                <BarGraph />
-              </div>
-              <Card className="col-span-4 md:col-span-3">
-                <CardHeader>
-                  <CardTitle>Recent Sales</CardTitle>
-                  <CardDescription>
-                    You made 265 sales this month.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <RecentSales />
-                </CardContent>
-              </Card>
-              <div className="col-span-4">
-                <AreaGraph />
-              </div>
-              <div className="col-span-4 md:col-span-3">
-                <PieGraph />
-              </div>
-            </div>
-          </TabsContent>
-        </Tabs>
       </div>
-    </PageContainer>
+    </div>
   );
 }
