@@ -1,22 +1,89 @@
 const bcrypt = require('bcryptjs');
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
+import { createId } from '@paralleldrive/cuid2';
 
+prisma.$use(
+  async (
+    params: { action: string; model: string; args: { data: { id: string } } },
+    next: (arg0: any) => any
+  ) => {
+    if (params.action === 'create' && params.model === 'User') {
+      params.args.data.id ??= createId();
+    }
+    return next(params);
+  }
+);
 async function main() {
   // Seed roles
-  const roles = [{ name: 'admin' }, { name: 'employee' }, { name: 'customer' }];
+  const roles = [
+    {
+      role_code: 'admin',
+      role_name: 'Administrator',
+      status: 'active',
+      created_by: 'seed'
+    },
+    {
+      role_code: 'employee',
+      role_name: 'Employee',
+      status: 'active',
+      created_by: 'seed'
+    },
+    {
+      role_code: 'customer',
+      role_name: 'Customer',
+      status: 'active',
+      created_by: 'seed'
+    }
+  ];
 
   // Seed permissions
   const permissions = [
-    { permissionCode: 'admin', name: 'Administrator Access' },
-    { permissionCode: 'employee_create', name: 'Create Employee Records' },
-    { permissionCode: 'employee_read', name: 'Read Employee Records' },
-    { permissionCode: 'employee_update', name: 'Update Employee Records' },
-    { permissionCode: 'employee_delete', name: 'Delete Employee Records' },
-    { permissionCode: 'customer_create', name: 'Create Customer Records' },
-    { permissionCode: 'customer_read', name: 'Read Customer Records' },
-    { permissionCode: 'customer_update', name: 'Update Customer Records' },
-    { permissionCode: 'customer_delete', name: 'Delete Customer Records' }
+    {
+      permission_code: 'admin',
+      permission_name: 'Administrator Access',
+      created_by: 'seed'
+    },
+    {
+      permission_code: 'employee_create',
+      permission_name: 'Create Employee Records',
+      created_by: 'seed'
+    },
+    {
+      permission_code: 'employee_read',
+      permission_name: 'Read Employee Records',
+      created_by: 'seed'
+    },
+    {
+      permission_code: 'employee_update',
+      permission_name: 'Update Employee Records',
+      created_by: 'seed'
+    },
+    {
+      permission_code: 'employee_delete',
+      permission_name: 'Delete Employee Records',
+      created_by: 'seed'
+    },
+    {
+      permission_code: 'customer_create',
+      permission_name: 'Create Customer Records',
+      created_by: 'seed'
+    },
+    {
+      permission_code: 'customer_read',
+      permission_name: 'Read Customer Records',
+      created_by: 'seed'
+    },
+    {
+      permission_code: 'customer_update',
+      permission_name: 'Update Customer Records',
+      created_by: 'seed'
+    },
+    {
+      permission_code: 'customer_delete',
+      permission_name: 'Delete Customer Records',
+      created_by: 'seed'
+    }
   ];
 
   // Create roles and permissions
@@ -33,7 +100,7 @@ async function main() {
   // Define role permissions
   const rolePermissions = [
     {
-      roleName: 'admin',
+      roleCode: 'admin',
       permissions: [
         'admin',
         'employee_create',
@@ -47,7 +114,7 @@ async function main() {
       ]
     },
     {
-      roleName: 'employee',
+      roleCode: 'employee',
       permissions: [
         'employee_create',
         'employee_read',
@@ -56,7 +123,7 @@ async function main() {
       ]
     },
     {
-      roleName: 'customer',
+      roleCode: 'customer',
       permissions: [
         'customer_create',
         'customer_read',
@@ -70,43 +137,51 @@ async function main() {
   const [rolesData, permissionsData] = await Promise.all([
     prisma.role.findMany({
       where: {
-        name: { in: rolePermissions.map((rp) => rp.roleName) }
+        role_code: { in: rolePermissions.map((rp) => rp.roleCode) }
       }
     }),
     prisma.permission.findMany({
       where: {
-        permissionCode: { in: rolePermissions.flatMap((rp) => rp.permissions) }
+        permission_code: { in: rolePermissions.flatMap((rp) => rp.permissions) }
       }
     })
   ]);
 
   // Map roles and permissions for easier access
   const roleMap = new Map(
-    rolesData.map((role: { name: any; id: any }) => [role.name, role.id])
+    rolesData.map((role: { role_code: any; id: any }) => [
+      role.role_code,
+      role.id
+    ])
   );
   const permissionMap = new Map(
-    permissionsData.map((permission: { permissionCode: any; id: any }) => [
-      permission.permissionCode,
+    permissionsData.map((permission: { permission_code: any; id: any }) => [
+      permission.permission_code,
       permission.id
     ])
   );
 
   // Prepare role permissions data
   const rolePermissionsData = rolePermissions.flatMap((rolePerm) => {
-    const roleId = roleMap.get(rolePerm.roleName);
+    const roleId = roleMap.get(rolePerm.roleCode);
     if (!roleId) return [];
 
     return rolePerm.permissions
-      .map((permissionCode) => permissionMap.get(permissionCode))
-      .filter((permissionId) => permissionId)
-      .map((permissionId) => ({
-        roleId,
-        permissionId
-      }));
+      .map((permissionCode) => {
+        const permissionId = permissionMap.get(permissionCode);
+        if (!permissionId) return null;
+
+        return {
+          role_code: rolePerm.roleCode,
+          permission_code: permissionCode,
+          created_by: 'seed'
+        };
+      })
+      .filter(Boolean);
   });
 
   // Create role permissions in batch
-  await prisma.rolePermission.createMany({
+  await prisma.roleHasPermission.createMany({
     data: rolePermissionsData,
     skipDuplicates: true
   });
@@ -114,29 +189,27 @@ async function main() {
   const methodLogins = [
     {
       id: 1,
-      name: 'Local',
-      type: 'Credentials',
-      config: {
-        encryption: 'bcrypt'
-      }
+      method_login_name: 'Local',
+      method_type: 'Credentials',
+      configuration: JSON.stringify({ encryption: 'bcrypt' })
     },
     {
       id: 2,
-      name: 'LDAP',
-      type: 'LDAP',
-      config: {
+      method_login_name: 'LDAP',
+      method_type: 'LDAP',
+      configuration: JSON.stringify({
         ldapUri: 'ldap://192.168.1.15',
         baseDn: 'ou=people,dc=katalyst,dc=local'
-      }
+      })
     },
     {
       id: 3,
-      name: 'Google',
-      type: 'OAuth',
-      config: {
+      method_login_name: 'Google',
+      method_type: 'OAuth',
+      configuration: JSON.stringify({
         clientId: 'your-google-client-id',
         clientSecret: 'your-google-client-secret'
-      }
+      })
     }
   ];
 
@@ -146,13 +219,53 @@ async function main() {
       update: {},
       create: {
         id: methodLogin.id,
-        name: methodLogin.name,
-        type: methodLogin.type,
-        config: methodLogin.config
+        method_login_name: methodLogin.method_login_name,
+        method_type: methodLogin.method_type,
+        configuration: methodLogin.configuration,
+        created_by: 'seed'
       }
     });
   }
+
   // Define users to be seeded
+  const branches = [
+    {
+      branch_code: '001',
+      branch_name: 'Main Branch',
+      description: 'Main office branch',
+      status: 'active',
+      created_by: 'admin'
+    }
+    // Add more branches as needed
+  ];
+
+  for (const branch of branches) {
+    await prisma.branch.upsert({
+      where: { branch_code: branch.branch_code },
+      update: {},
+      create: branch
+    });
+  }
+
+  // Seed Departments
+  const departments = [
+    {
+      id: 1,
+      department_name: 'Admin',
+      description: 'Admin Seed',
+      status: 'active',
+      created_by: 'admin'
+    }
+    // Add more departments as needed
+  ];
+
+  for (const department of departments) {
+    await prisma.departments.upsert({
+      where: { id: department.id },
+      update: {},
+      create: department
+    });
+  }
   const users = [
     {
       email: 'admin@gmail.com',
@@ -162,7 +275,10 @@ async function main() {
       roles: ['admin'],
       permissions: [],
       permissions_deny: [],
-      method_login_id: 1
+      method_login_id: 1,
+      branch_code: '001', // Example value, adjust as needed
+      department_id: 1, // Example value, adjust as needed
+      created_by: 'admin'
     },
     {
       email: 'employee@gmail.com',
@@ -172,7 +288,10 @@ async function main() {
       roles: ['employee'],
       permissions: ['customer_read'],
       permissions_deny: ['employee_delete'],
-      method_login_id: 1
+      method_login_id: 1,
+      branch_code: '001', // Example value, adjust as needed
+      department_id: 1, // Example value, adjust as needed
+      created_by: 'admin'
     },
     {
       email: 'customer@gmail.com',
@@ -182,7 +301,10 @@ async function main() {
       roles: ['customer'],
       permissions: [],
       permissions_deny: [],
-      method_login_id: 1
+      method_login_id: 1,
+      branch_code: '001', // Example value, adjust as needed
+      department_id: 1, // Example value, adjust as needed
+      created_by: 'admin'
     },
     {
       email: 'namnguyen137@gmail.com',
@@ -192,7 +314,10 @@ async function main() {
       roles: ['admin'],
       permissions: [],
       permissions_deny: [],
-      method_login_id: 2
+      method_login_id: 2,
+      branch_code: '001', // Example value, adjust as needed
+      department_id: 1, // Example value, adjust as needed
+      created_by: 'admin'
     }
   ];
 
@@ -202,30 +327,28 @@ async function main() {
       data: {
         email: user.email,
         username: user.username,
-        name: user.name,
+        employment_name: user.name,
         password: hashedPassword,
-        method_login_id: user.method_login_id
+        method_login_id: user.method_login_id,
+        branch_code: user.branch_code,
+        department_id: user.department_id,
+        status: 'active',
+        created_by: user.created_by
       }
     });
 
     // Assign roles to the new user
+
     for (const roleName of user.roles) {
       const role = await prisma.role.findUnique({
-        where: { name: roleName }
+        where: { role_code: roleName }
       });
 
       if (role) {
-        await prisma.userRole.create({
-          data: {
-            userId: newUser.id,
-            roleId: role.id
-          }
-        });
-
         // Assign all permissions for this role to the user
-        const rolePermissions = await prisma.rolePermission.findMany({
+        const rolePermissions = await prisma.roleHasPermission.findMany({
           where: {
-            roleId: role.id
+            role_code: role.role_code
           },
           include: {
             permission: true
@@ -235,28 +358,29 @@ async function main() {
         // Fetch denied permissions
         const deniedPermissions = await prisma.permission.findMany({
           where: {
-            permissionCode: { in: user.permissions_deny }
+            permission_code: { in: user.permissions_deny }
           }
         });
-        const deniedPermissionIds = deniedPermissions.map(
-          (p: { id: any }) => p.id
+        const deniedPermissionCodes = deniedPermissions.map(
+          (p: { permission_code: any }) => p.permission_code
         );
 
         // Filter out denied permissions
         const filteredRolePermissions = rolePermissions.filter(
-          (rp: { permission: { id: any } }) =>
-            !deniedPermissionIds.includes(rp.permission.id)
+          (rp: { permission: { permission_code: any } }) =>
+            !deniedPermissionCodes.includes(rp.permission.permission_code)
         );
 
         // Assign all non-denied role permissions to the user
         const rolePermissionsData = filteredRolePermissions.map(
-          (rp: { permission: { id: any } }) => ({
-            userId: newUser.id,
-            permissionId: rp.permission.id
+          (rp: { permission: { permission_code: any } }) => ({
+            user_id: newUser.id,
+            permission_code: rp.permission.permission_code,
+            created_by: 'seed'
           })
         );
 
-        await prisma.userPermission.createMany({
+        await prisma.userHasPermission.createMany({
           data: rolePermissionsData,
           skipDuplicates: true
         });
@@ -266,18 +390,19 @@ async function main() {
     // Assign additional permissions specified in the user's permissions array
     const additionalPermissions = await prisma.permission.findMany({
       where: {
-        permissionCode: { in: user.permissions }
+        permission_code: { in: user.permissions }
       }
     });
 
     const additionalPermissionsData = additionalPermissions.map(
-      (permission: { id: any }) => ({
-        userId: newUser.id,
-        permissionId: permission.id
+      (permission: { permission_code: any }) => ({
+        user_id: newUser.id,
+        permission_code: permission.permission_code,
+        created_by: 'seed'
       })
     );
 
-    await prisma.userPermission.createMany({
+    await prisma.userHasPermission.createMany({
       data: additionalPermissionsData,
       skipDuplicates: true
     });

@@ -10,7 +10,7 @@ export async function GET(
 
   try {
     const user = await prisma.user.findUnique({
-      where: { id: parseInt(id) },
+      where: { id: id },
       select: {
         id: true,
         email: true,
@@ -44,7 +44,7 @@ export async function PUT(
     const { email, username, name } = body;
 
     const updatedUser = await prisma.user.update({
-      where: { id: parseInt(id) },
+      where: { id: id },
       data: {
         email,
         username,
@@ -69,15 +69,15 @@ export async function DELETE(
 
   try {
     await prisma.userPermission.deleteMany({
-      where: { userId: parseInt(id) }
+      where: { userId: id }
     });
 
     await prisma.userRole.deleteMany({
-      where: { userId: parseInt(id) }
+      where: { userId: id }
     });
 
     const deletedUser = await prisma.user.delete({
-      where: { id: parseInt(id) }
+      where: { id: id }
     });
 
     return NextResponse.json(deletedUser);

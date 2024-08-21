@@ -34,13 +34,15 @@ export function UserNav() {
             <AvatarImage
               src={session.user?.image ?? ''}
               alt={
-                session.user?.name
-                  ? `${session.user.name}'s avatar`
+                session.user?.employment_name
+                  ? `${session.user.employment_name}'s avatar`
                   : 'User avatar'
               }
             />
             <AvatarFallback>
-              {session.user?.name ? session.user.name[0] : 'U'}
+              {session.user?.employment_name
+                ? session.user.employment_name[0]
+                : 'U'}
             </AvatarFallback>
           </Avatar>
         </Button>
@@ -49,7 +51,7 @@ export function UserNav() {
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
             <p className="text-sm font-medium leading-none">
-              {session.user?.name || 'User'}
+              {session.user?.employment_name || 'User'}
             </p>
             <p className="text-xs leading-none text-muted-foreground">
               {session.user?.email || 'No email provided'}

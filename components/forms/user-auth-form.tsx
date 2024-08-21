@@ -25,7 +25,7 @@ const formSchema = z.object({
   password: z
     .string()
     .min(6, { message: 'Password must be at least 6 characters long' }),
-  loginType: z.string().nonempty({ message: 'Login type is required' }) // Added login type to the schema
+  loginType: z.string().nonempty({ message: 'Login type is required' })
 });
 
 type UserFormValue = z.infer<typeof formSchema>;
@@ -34,12 +34,13 @@ export default function UserAuthForm() {
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get('callbackUrl');
   const [loading, setLoading] = useState(false);
+  const [loginType, setLoginType] = useState('1');
   const form = useForm<UserFormValue>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       username: '',
       password: '',
-      loginType: '1' // Set a default value if needed
+      loginType: '1'
     }
   });
 
@@ -67,11 +68,22 @@ export default function UserAuthForm() {
         });
       } else if (result?.url) {
         window.location.href = result.url;
+        toast.success('Đăng nhập thành công !!!', {
+          position: 'top-center',
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: 'light'
+        });
       }
     } finally {
       setLoading(false);
     }
   };
+
   const handleForgetPassword = () => {
     toast.info('Vui lòng liên hệ ADMIN hệ thống để nhận lại mật khẩu', {
       position: 'top-center',
@@ -84,6 +96,7 @@ export default function UserAuthForm() {
       theme: 'light'
     });
   };
+
   return (
     <>
       <ToastContainer />
@@ -108,9 +121,11 @@ export default function UserAuthForm() {
                       {...field}
                       className="pr-32"
                     />
-                    <span className="absolute right-0 top-0 flex h-full items-center px-3 text-gray-500">
-                      @evnhcmc.vn
-                    </span>
+                    {loginType !== '2' && (
+                      <span className="absolute right-0 top-0 flex h-full items-center px-3 text-gray-500">
+                        @evnhcmc.vn
+                      </span>
+                    )}
                   </div>
                 </FormControl>
                 <FormMessage />
@@ -166,7 +181,10 @@ export default function UserAuthForm() {
                 <FormControl>
                   <RadioGroup
                     defaultValue={field.value}
-                    onValueChange={field.onChange}
+                    onValueChange={(value) => {
+                      field.onChange(value);
+                      setLoginType(value);
+                    }}
                   >
                     <div className="flex justify-center space-x-4">
                       <div className="flex items-center space-x-2">
@@ -186,8 +204,6 @@ export default function UserAuthForm() {
           />
         </form>
       </Form>
-
-      {/* <GoogleSignInButton /> */}
     </>
   );
 }

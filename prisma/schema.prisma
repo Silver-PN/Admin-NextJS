@@ -14,97 +14,164 @@ datasource db {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  email     String   
-  username  String   @unique 
-  name      String?
-  password  String
-  roles     UserRole[]
-  permissions UserPermission[]
-  method_login_id  Int?
-  loginMethod    MethodLogin?    @relation(fields: [method_login_id], references: [id])
-  createdAt DateTime @default(now()) 
-  updatedAt DateTime @updatedAt     
-  @@map("users")
+  id              String   @id
+  username        String   @unique
+  email           String
+  branch_code     String
+  department_id   Int
+  employment_name String?
+  status          String
+  password        String
+  method_login_id Int?
+  created_at      DateTime @default(now())
+  created_by      String
+  updated_at      DateTime @updatedAt
+  updated_by      String?
+
+  branch           Branch              @relation(fields: [branch_code], references: [branch_code])
+  department       Departments         @relation(fields: [department_id], references: [id])
+  method_login     MethodLogin?        @relation(fields: [method_login_id], references: [id])
+  user_permissions UserHasPermission[]
+
+  @@map("user")
 }
 
-model Product {
-  id            Int      @id @default(autoincrement())
-  name          String
-  customerName  String
-  quantity      Int
-  price         Float
-  discount      Float
-  profit        Float
-  region        String
-  category      String
-  rating        Float
-  createdAt DateTime @default(now()) 
-  updatedAt DateTime @updatedAt   
-  @@map("products")
+model Branch {
+  id          Int      @id @default(autoincrement())
+  branch_code String   @unique
+  branch_name String
+  description String?
+  status      String
+  created_at  DateTime @default(now())
+  created_by  String
+  updated_at  DateTime @updatedAt
+  updated_by  String?
+
+  users User[]
+
+  @@map("branch")
+}
+
+model Departments {
+  id              Int      @id @default(autoincrement())
+  department_name String   @unique
+  description     String?
+  status          String
+  created_at      DateTime @default(now())
+  created_by      String
+  updated_at      DateTime @updatedAt
+  updated_by      String?
+
+  users User[]
+
+  @@map("departments")
+}
+
+model MethodLogin {
+  id                Int      @id @default(autoincrement())
+  method_login_name String
+  method_type       String
+  configuration     String
+  created_at        DateTime @default(now())
+  created_by        String
+  updated_at        DateTime @updatedAt
+  updated_by        String?
+
+  users User[]
+
+  @@map("method_login")
 }
 
 model Role {
-  id          Int          @id @default(autoincrement())
-  name        String       @unique
-  users       UserRole[]
-  permissions RolePermission[]
-  createdAt DateTime @default(now()) 
-  updatedAt DateTime @updatedAt  
+  id          Int      @id @default(autoincrement())
+  role_code   String   @unique
+  role_name   String   @unique
+  description String?
+  status      String
+  created_at  DateTime @default(now())
+  created_by  String
+  updated_at  DateTime @updatedAt
+  updated_by  String?
+
+  permissions         RoleHasPermission[]
+  user_has_permission UserHasPermission[]
+
   @@map("roles")
 }
 
 model Permission {
-  id    Int    @id @default(autoincrement())
-  permissionCode String @unique
-  name  String
-  roles RolePermission[]
-  users UserPermission[]
-  createdAt DateTime @default(now()) 
-  updatedAt DateTime @updatedAt 
+  id                     Int      @id @default(autoincrement())
+  permission_code        String   @unique
+  permission_name        String
+  permission_category_id Int?
+  created_at             DateTime @default(now())
+  created_by             String
+  updated_at             DateTime @updatedAt
+  updated_by             String?
+
+  permission_category  PermissionCategory? @relation(fields: [permission_category_id], references: [id])
+  role_has_permissions RoleHasPermission[]
+  user_has_permissions UserHasPermission[]
+
   @@map("permissions")
 }
 
-model UserRole {
-  userId Int
-  roleId Int
-  user   User @relation(fields: [userId], references: [id])
-  role   Role @relation(fields: [roleId], references: [id])
-  @@id([userId, roleId])
-  createdAt DateTime @default(now()) 
-  updatedAt DateTime @updatedAt 
-  @@map("user_roles")
+model UserHasPermission {
+  user_id             String
+  permission_code     String
+  role_code           String?
+  has_permission_type String?
+  created_at          DateTime @default(now())
+  created_by          String
+  updated_at          DateTime @updatedAt
+  updated_by          String?
+
+  user       User       @relation(fields: [user_id], references: [id])
+  permission Permission @relation(fields: [permission_code], references: [permission_code])
+  role       Role?      @relation(fields: [role_code], references: [role_code])
+
+  @@id([user_id, permission_code])
+  @@map("user_has_permission")
 }
 
-model UserPermission {
-  userId       Int
-  permissionId Int
-  user         User       @relation(fields: [userId], references: [id])
-  permission   Permission @relation(fields: [permissionId], references: [id])
-  @@id([userId, permissionId])
-  createdAt DateTime @default(now()) 
-  updatedAt DateTime @updatedAt 
-  @@map("user_permissions")
+model RoleHasPermission {
+  role_code       String
+  permission_code String
+  created_at      DateTime @default(now())
+  created_by      String
+  updated_at      DateTime @updatedAt
+  updated_by      String?
+
+  role       Role       @relation(fields: [role_code], references: [role_code])
+  permission Permission @relation(fields: [permission_code], references: [permission_code])
+
+  @@id([role_code, permission_code])
+  @@map("role_has_permission")
 }
 
-model RolePermission {
-  roleId       Int
-  permissionId Int
-  role         Role       @relation(fields: [roleId], references: [id])
-  permission   Permission @relation(fields: [permissionId], references: [id])
-  @@id([roleId, permissionId])
-  createdAt DateTime @default(now()) 
-  updatedAt DateTime @updatedAt 
-  @@map("role_permissions")
-}
+model PermissionCategory {
+  id                       Int      @id @default(autoincrement())
+  permission_category_name String   @unique
+  description              String?
+  status                   String
+  created_at               DateTime @default(now())
+  created_by               String
+  updated_at               DateTime @updatedAt
+  updated_by               String?
 
-model MethodLogin {
-  id        Int      @id @default(autoincrement())
-  name      String
-  type      String
-  config    Json
-  users     User[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  @@map("method_login")
+  permissions Permission[]
+
+  @@map("permission_category")
+}
+model UserHasPermissionHistory {
+  id                   Int      @id @default(autoincrement())
+  user_id              String
+  permission_code      String
+  role_code            String?
+  has_permission_type  String?
+  change_type          String
+  changed_at           DateTime @default(now())
+  changed_by           String
+
+  @@map("user_has_permission_history")
 }
