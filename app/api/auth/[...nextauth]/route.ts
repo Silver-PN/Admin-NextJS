@@ -119,8 +119,10 @@ export const authOptions: AuthOptions = {
     },
     async session({ session, token }) {
       if (token.user) {
-        session.user = token.user;
-        // session.permissions = token.permissions; // Added permissions to session
+        const { method_login, ...userWithoutMethodLogin } = token.user as any;
+        session.user = userWithoutMethodLogin;
+        // session.user = token.user;
+        // session.permissions = token.permissions;
       }
       return session;
     }

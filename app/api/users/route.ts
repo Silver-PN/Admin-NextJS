@@ -10,7 +10,17 @@ export const POST = async (request: any) => {
 
     userSchema.parse(body);
 
-    const { email, password, username, name } = body;
+    const {
+      email,
+      password,
+      username,
+      employment_name,
+      method_login_id,
+      user_active,
+      branch_code,
+      department_id
+    } = body;
+
     const result = await prisma.$transaction(async (prisma) => {
       const existingUser = await prisma.user.findUnique({
         where: { username }
@@ -30,8 +40,19 @@ export const POST = async (request: any) => {
         data: {
           email,
           username,
+          employment_name,
+          status: 'active',
           password: hashedPassword,
-          name
+          method_login: {
+            connect: { id: Number(method_login_id) }
+          },
+          branch: {
+            connect: { branch_code: branch_code }
+          },
+          department: {
+            connect: { id: department_id }
+          },
+          created_by: user_active
         }
       });
 
@@ -59,22 +80,25 @@ export async function GET(request: Request) {
 
     const users = await prisma.user.findMany({
       include: {
-        roles: {
+        user_permissions: {
           select: {
             role: {
               select: {
                 id: true,
-                name: true
+                role_name: true
               }
             }
-          }
-        }
+          },
+          distinct: ['role_code']
+        },
+        method_login: true,
+        branch: true
       },
       orderBy: {
-        createdAt: 'desc'
+        created_at: 'desc'
       },
-      skip, // Skip the previous pages
-      take // Limit to the number of users per page
+      skip,
+      take
     });
 
     // Get the total count of users for pagination metadata

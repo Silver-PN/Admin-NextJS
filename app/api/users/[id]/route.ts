@@ -11,12 +11,21 @@ export async function GET(
   try {
     const user = await prisma.user.findUnique({
       where: { id: id },
-      select: {
-        id: true,
-        email: true,
-        username: true,
-        name: true
+      include: {
+        method_login: {
+          select: {
+            id: true,
+            method_login_name: true
+          }
+        },
+        branch: true
       }
+      // select: {
+      //   id: true,
+      //   email: true,
+      //   username: true,
+      //   name: true
+      // }
     });
 
     if (!user) {
@@ -41,14 +50,13 @@ export async function PUT(
   try {
     const body = await request.json();
 
-    const { email, username, name } = body;
+    const { email, username } = body;
 
     const updatedUser = await prisma.user.update({
       where: { id: id },
       data: {
         email,
-        username,
-        name
+        username
       }
     });
 
@@ -68,14 +76,12 @@ export async function DELETE(
   const { id } = params;
 
   try {
-    await prisma.userPermission.deleteMany({
-      where: { userId: id }
+    // Delete user permissions
+    await prisma.userHasPermission.deleteMany({
+      where: { user_id: id }
     });
 
-    await prisma.userRole.deleteMany({
-      where: { userId: id }
-    });
-
+    // Delete the user
     const deletedUser = await prisma.user.delete({
       where: { id: id }
     });

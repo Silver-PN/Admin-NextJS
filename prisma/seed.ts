@@ -376,6 +376,8 @@ async function main() {
           (rp: { permission: { permission_code: any } }) => ({
             user_id: newUser.id,
             permission_code: rp.permission.permission_code,
+            role_code: role.role_code,
+            has_permission_type: 'active',
             created_by: 'seed'
           })
         );
@@ -398,6 +400,8 @@ async function main() {
       (permission: { permission_code: any }) => ({
         user_id: newUser.id,
         permission_code: permission.permission_code,
+        // role_code: role.role_code,
+        has_permission_type: 'active',
         created_by: 'seed'
       })
     );

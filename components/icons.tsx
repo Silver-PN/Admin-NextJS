@@ -29,7 +29,8 @@ import {
   User2Icon,
   UserX2Icon,
   X,
-  BookUser
+  BookUser,
+  ScrollText
 } from 'lucide-react';
 
 export type Icon = LucideIcon;
@@ -56,6 +57,7 @@ export const Icons = {
   warning: AlertTriangle,
   user: User,
   bookUser: BookUser,
+  scrollText: ScrollText,
   arrowRight: ArrowRight,
   help: HelpCircle,
   pizza: Pizza,

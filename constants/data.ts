@@ -148,9 +148,18 @@ export const navItems: NavItem[] = [
     label: 'kanban'
   },
   {
-    title: 'Login',
-    href: '/',
-    icon: 'login',
-    label: 'login'
+    title: 'Roles',
+    icon: 'scrollText',
+    label: 'Roles',
+    subItems: [
+      { title: 'Permissons', href: '/dashboard/roles/permissions' },
+      { title: 'Roles', href: '/dashboard/roles/role' }
+    ]
   }
+  // {
+  //   title: 'Login',
+  //   href: '/',
+  //   icon: 'login',
+  //   label: 'login'
+  // }
 ];

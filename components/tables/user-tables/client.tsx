@@ -31,6 +31,7 @@ export const UserClient: React.FC = () => {
           pageSize
         }
       });
+      setUsers(response.data.users);
       return response.data;
     } catch (error) {
       return { data: [], totalUsers: 0 };
@@ -57,7 +58,7 @@ export const UserClient: React.FC = () => {
       </div>
       <Separator />
       <DataTable
-        searchKey="name"
+        searchKey="employment_name"
         columns={columns}
         data={users}
         pageNo={1}

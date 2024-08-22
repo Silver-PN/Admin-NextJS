@@ -1,5 +1,14 @@
 import { Icons } from '@/components/icons';
 
+export interface SubMenuItem {
+  title: string;
+  href?: string;
+  disabled?: boolean;
+  external?: boolean;
+  icon?: keyof typeof Icons;
+  label?: string;
+  description?: string;
+}
 export interface NavItem {
   title: string;
   href?: string;
@@ -8,6 +17,7 @@ export interface NavItem {
   icon?: keyof typeof Icons;
   label?: string;
   description?: string;
+  subItems?: SubMenuItem[];
 }
 
 export interface NavItemWithChildren extends NavItem {
