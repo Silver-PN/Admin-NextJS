@@ -25,26 +25,31 @@ export const POST = async (request: Request) => {
     });
   }
 };
-// export const GET = async () => {
-//   try {
-//     const roles = await prisma.role.findMany({
-//       include: {
-//         permissions: true
-//       }
-//     });
 
-//     const roleWithPermissions = roles.map((role) => ({
-//       id: role.id,
-//       name: role.name,
-//       permissions: role.permissions.map((p) => p.permissionId),
-//       createdAt: role.createdAt,
-//       updatedAt: role.updatedAt
-//     }));
+export const GET = async () => {
+  try {
+    const roles = await prisma.role.findMany({
+      include: {
+        permissions: true // Include related permissions
+      }
+    });
 
-//     return new NextResponse(JSON.stringify(roleWithPermissions), {
-//       status: 200
-//     });
-//   } catch (error) {
-//     return new NextResponse(error.message, { status: 500 });
-//   }
-// };
+    // Map roles to a simplified structure
+    const roleWithPermissions = roles.map((role) => ({
+      id: role.id,
+      role_code: role.role_code,
+      role_name: role.role_name,
+      description: role.description,
+      status: role.status,
+      created_at: role.created_at,
+      updated_at: role.updated_at,
+      permissions: role.permissions.map((p) => p.permission_code) // Map permissions to their codes
+    }));
+
+    return NextResponse.json(roleWithPermissions);
+  } catch (error: any) {
+    return new NextResponse(error.message || 'Internal Server Error', {
+      status: 500
+    });
+  }
+};

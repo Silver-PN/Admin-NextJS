@@ -10,7 +10,7 @@ const PROTECTED_ROUTES = ['/dashboard'];
 //   '/permissions',
 //   '/roles'
 // ];
-const ROLE_SPECIFIC_PERMISSION = ['/roles/'];
+const ROLE_SPECIFIC_PERMISSION = ['/dashboard/roles/'];
 
 async function authenticate(request: NextRequest) {
   return await getToken({

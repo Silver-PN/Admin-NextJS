@@ -15,37 +15,51 @@ export async function GET(
         id: true,
         email: true,
         username: true,
-        name: true,
-        permissions: {
+        employment_name: true,
+        user_permissions: {
           select: {
             permission: {
               select: {
-                id: true
+                id: true,
+                permission_code: true
               }
-            }
-          }
-        },
-        roles: {
-          select: {
+            },
             role: {
               select: {
                 id: true,
-                permissions: true
+                role_name: true,
+                role_code: true
               }
-            }
+            },
+            has_permission_type: true
           }
         }
       }
     });
+
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
-    const userWithPermissions = {
+
+    // Extract permissions and roles
+    const permissions = user.user_permissions.map((p) => ({
+      permission_code: p.permission.permission_code,
+      role_code: p.role ? p.role.role_code : null,
+      has_permission_type: p.has_permission_type
+    }));
+
+    // Use a Set to get unique roles based on role_code
+    const roles = Array.from(
+      new Set(user.user_permissions.map((p) => JSON.stringify(p.role)))
+    ).map((r) => JSON.parse(r));
+
+    const userWithDetails = {
       ...user,
-      permissions: user.permissions.map((p) => p.permission.id)
-      // roles: user.permissions.map((r) => r.permission.map((p) => p.permission.id))
+      user_permissions: permissions,
+      roles: roles
     };
-    return NextResponse.json(userWithPermissions);
+
+    return NextResponse.json(userWithDetails);
   } catch (error) {
     console.error('Failed to fetch user', error);
     return NextResponse.json(
@@ -54,51 +68,52 @@ export async function GET(
     );
   }
 }
-export async function PUT(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
-  const { id } = params;
 
-  try {
-    const body = await request.json();
+// export async function PUT(
+//   request: Request,
+//   { params }: { params: { id: string } }
+// ) {
+//   const { id } = params;
 
-    const { email, username, name } = body;
+//   try {
+//     const body = await request.json();
 
-    const updatedUser = await prisma.user.update({
-      where: { id: id },
-      data: {
-        email,
-        username,
-        name
-      }
-    });
+//     const { email, username, name } = body;
 
-    return NextResponse.json(updatedUser);
-  } catch (error) {
-    return NextResponse.json(
-      { error: 'Internal Server Error' },
-      { status: 500 }
-    );
-  }
-}
+//     const updatedUser = await prisma.user.update({
+//       where: { id: id },
+//       data: {
+//         email,
+//         username,
+//         name
+//       }
+//     });
 
-export async function DELETE(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
-  const { id } = params;
+//     return NextResponse.json(updatedUser);
+//   } catch (error) {
+//     return NextResponse.json(
+//       { error: 'Internal Server Error' },
+//       { status: 500 }
+//     );
+//   }
+// }
 
-  try {
-    const deletedUser = await prisma.user.delete({
-      where: { id: id }
-    });
+// export async function DELETE(
+//   request: Request,
+//   { params }: { params: { id: string } }
+// ) {
+//   const { id } = params;
 
-    return NextResponse.json(deletedUser);
-  } catch (error) {
-    return NextResponse.json(
-      { error: 'Internal Server Error' },
-      { status: 500 }
-    );
-  }
-}
+//   try {
+//     const deletedUser = await prisma.user.delete({
+//       where: { id: id }
+//     });
+
+//     return NextResponse.json(deletedUser);
+//   } catch (error) {
+//     return NextResponse.json(
+//       { error: 'Internal Server Error' },
+//       { status: 500 }
+//     );
+//   }
+// }

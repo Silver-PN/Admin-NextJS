@@ -35,6 +35,7 @@ const lightTheme = createTheme({
 });
 const MoveItems = ({
   userPermissions = [],
+  userRoles = [],
   allPermissions = [],
   allRoles = [],
   onSubmit
@@ -42,10 +43,11 @@ const MoveItems = ({
   const [leftOptions, setLeftOptions] = useState([]);
   const [rightOptions1, setRightOptions1] = useState([]);
   const [rightOptions2, setRightOptions2] = useState([]);
+  const [tmpRightOptions1, setTmpRightOptions1] = useState([]);
   const [finalOptions, setFinalOptions] = useState([]);
   const [initialLeftOptions, setInitialLeftOptions] = useState([]);
-  const [initialRightOptions1] = useState([]);
-  const [initialRightOptions2] = useState([]);
+  const [initialRightOptions1, setInitialRightOptions1] = useState([]);
+  const [initialRightOptions2, setInitialRightOptions2] = useState([]);
   const [initialLFinalOptions, setInitialLFinalOptions] = useState([]);
   const [selectedLeft, setSelectedLeft] = useState(new Set());
   const [selectedRight1, setSelectedRight1] = useState(new Set());
@@ -53,7 +55,18 @@ const MoveItems = ({
   const [selectedFinal, setSelectedFinal] = useState(new Set());
   const [searchQuery, setSearchQuery] = useState('');
   const [searchQueryFinal, setSearchQueryFinal] = useState('');
-  const [selectedRoles, setSelectedRoles] = useState(new Set());
+  const [selectedRoles, setSelectedRoles] = useState(() => {
+    const initialRoles = new Set();
+    userRoles
+      .filter((role) => role != null)
+      .forEach((role) => {
+        if (role.id != null) {
+          initialRoles.add(role.id);
+        }
+      });
+    return initialRoles;
+  });
+
   const { theme } = useTheme();
 
   const sortByName = (options) => {
@@ -65,34 +78,49 @@ const MoveItems = ({
       value: permission.id,
       label: permission.name
     }));
-    const left = (userPermissions || []).map((id) => {
-      const permission = allPermissions.find((p) => p.id === id);
-      return {
-        value: id,
-        label: permission ? permission.name : ''
-      };
-    });
 
-    // const right = (allPermissions || [])
-    //   .filter((permission) => !(userPermissions || []).includes(permission.id))
-    //   .map((permission) => ({
-    //     value: permission.id,
-    //     label: permission.name
-    //   }));
+    const deny = (userPermissions || [])
+      .filter((up) => up.has_permission_type === 'lock')
+      .map((up) => {
+        const permission = allPermissions.find(
+          (p) => p.id === up.permission_code
+        );
+        return {
+          value: up.permission_code,
+          label: permission ? permission.name : '',
+          role_code: up.role_code
+        };
+      });
 
-    // const half = Math.ceil(right.length / 2);
-    // const right1 = right.slice(0, half);
-    // const right2 = right.slice(half);
+    const allow = (userPermissions || [])
+      .filter((up) => up.has_permission_type === 'add')
+      .map((up) => {
+        const permission = allPermissions.find(
+          (p) => p.id === up.permission_code
+        );
+        return {
+          value: up.permission_code,
+          label: permission ? permission.name : '',
+          role_code: up.role_code
+        };
+      });
 
-    setLeftOptions(sortByName(allOptions));
-    // setRightOptions1(sortByName(right1));
-    // setRightOptions2(sortByName(right2));
-    setFinalOptions(sortByName(left));
+    // const allOptionsSet = new Set(allOptions.map((option) => option.value));
+    const allowSet = new Set(allow.map((option) => option.value));
+    const denySet = new Set(deny.map((option) => option.value));
 
-    setInitialLeftOptions(sortByName(allOptions));
-    // setInitialRightOptions1(sortByName(right1));
-    // setInitialRightOptions2(sortByName(right2));
-    setInitialLFinalOptions(sortByName(left));
+    const filteredAllOptions = allOptions.filter(
+      (option) => !allowSet.has(option.value) && !denySet.has(option.value)
+    );
+
+    // Update state with sorted options
+    setLeftOptions(sortByName(filteredAllOptions));
+    setRightOptions1(sortByName(allow));
+    setRightOptions2(sortByName(deny));
+
+    setInitialLeftOptions(sortByName(filteredAllOptions));
+    setInitialRightOptions1(sortByName(allow));
+    setInitialRightOptions2(sortByName(deny));
   }, [userPermissions, allPermissions]);
 
   useEffect(() => {
@@ -100,43 +128,68 @@ const MoveItems = ({
 
     if (selectedRoles.size !== 0) {
       const selectedRoleIds = Array.from(selectedRoles);
-
       const filteredRoles = allRoles.filter((role) =>
         selectedRoleIds.includes(role.id)
       );
 
       const allPermissionsSelect = filteredRoles
-        .flatMap((role) => role.permissions)
-        .filter((value, index, self) => self.indexOf(value) === index);
+        .flatMap((role) =>
+          role.permissions.map((perm) => ({
+            value: perm,
+            role_code: role.role_code
+          }))
+        )
+        .filter(
+          (value, index, self) =>
+            index === self.findIndex((t) => t.value === value.value)
+        );
 
       const allPermissionsInRole = allPermissions.filter((permission) =>
-        allPermissionsSelect.includes(permission.id)
+        allPermissionsSelect.some((item) => item.value === permission.id)
       );
-      const transformedPermissions = allPermissionsInRole.map((permission) => ({
-        value: permission.id,
-        label: permission.name
-      }));
 
+      const transformedPermissions = allPermissionsInRole.map((permission) => {
+        const roleCode = allPermissionsSelect.find(
+          (item) => item.value === permission.id
+        )?.role_code;
+        return {
+          value: permission.id,
+          label: permission.name,
+          role_code: roleCode
+        };
+      });
+      const existingOptions = rightOptions1.filter((option) =>
+        transformedPermissions.some(
+          (permission) => permission.value === option.value
+        )
+      );
+      setTmpRightOptions1(existingOptions);
       combinedOptions = [
         ...initialLFinalOptions,
         ...rightOptions1,
         ...transformedPermissions
       ];
     } else {
+      setTmpRightOptions1([]);
       combinedOptions = [...initialLFinalOptions, ...rightOptions1];
     }
 
-    const uniqueOptions = Array.from(
-      new Set(combinedOptions.map((option) => option.value))
-    ).map((value) => {
-      return combinedOptions.find((option) => option.value === value);
+    const optionsMap = new Map();
+
+    combinedOptions.forEach((option) => {
+      if (!optionsMap.has(option.value) || option.role_code) {
+        optionsMap.set(option.value, option);
+      }
     });
+
+    const uniqueOptions = Array.from(optionsMap.values());
     const updatedFinalOptions = uniqueOptions.filter(
       (option) =>
         !rightOptions2.some(
           (right2Option) => right2Option.value === option.value
         )
     );
+
     setFinalOptions(sortByName(updatedFinalOptions));
   }, [
     allPermissions,
@@ -144,9 +197,18 @@ const MoveItems = ({
     initialLFinalOptions,
     rightOptions1,
     rightOptions2,
-    selectedRoles
+    selectedRoles,
+    userRoles
   ]);
-
+  // useEffect(() => {
+  //   if (tmpRightOptions1.length > 0) {
+  //     const updatedRightOptions1 = rightOptions1.filter(
+  //       (option) =>
+  //         !tmpRightOptions1.some((existing) => existing.value === option.value)
+  //     );
+  //     setRightOptions1(updatedRightOptions1);
+  //   }
+  // }, [rightOptions1, tmpRightOptions1]);
   const filterLeftOptions = () => {
     return leftOptions.filter((option) =>
       option.label.toLowerCase().includes(searchQuery.toLowerCase())
@@ -247,6 +309,7 @@ const MoveItems = ({
   };
 
   const resetData = () => {
+    setTmpRightOptions1([]);
     setLeftOptions(sortByName(initialLeftOptions));
     setRightOptions1(sortByName(initialRightOptions1));
     setRightOptions2(sortByName(initialRightOptions2));
@@ -256,15 +319,21 @@ const MoveItems = ({
     setSelectedRight1(new Set());
     setSelectedRight2(new Set());
     setSelectedFinal(new Set());
-    setSelectedRoles(new Set());
+    setSelectedRoles(
+      new Set(
+        userRoles
+          .filter((role) => role != null && role.id != null)
+          .map((role) => role.id)
+      )
+    );
   };
 
   const submitData = () => {
     const data = {
-      leftOptions: leftOptions.map((option) => option.value),
-      rightOptions1: rightOptions1.map((option) => option.value),
-      rightOptions2: rightOptions2.map((option) => option.value),
-      finalOptions: finalOptions.map((option) => option.value)
+      rightOptions1,
+      rightOptions2,
+      finalOptions,
+      tmpRightOptions1
     };
     if (onSubmit) {
       onSubmit(data);
@@ -419,22 +488,30 @@ const MoveItems = ({
                             </TableRow>
                           </TableHead>
                           <TableBody>
-                            {rightOptions1.map((option) => (
-                              <TableRow
-                                key={option.value}
-                                selected={selectedRight1.has(option.value)}
-                                onClick={() =>
-                                  handleRowClick(
-                                    option.value,
-                                    setSelectedRight1
+                            {rightOptions1
+                              .filter(
+                                (option) =>
+                                  !tmpRightOptions1.some(
+                                    (tmpOption) =>
+                                      tmpOption.value === option.value
                                   )
-                                }
-                                hover
-                                style={{ cursor: 'pointer' }}
-                              >
-                                <TableCell>{option.label}</TableCell>
-                              </TableRow>
-                            ))}
+                              )
+                              .map((option) => (
+                                <TableRow
+                                  key={option.value}
+                                  selected={selectedRight1.has(option.value)}
+                                  onClick={() =>
+                                    handleRowClick(
+                                      option.value,
+                                      setSelectedRight1
+                                    )
+                                  }
+                                  hover
+                                  style={{ cursor: 'pointer' }}
+                                >
+                                  <TableCell>{option.label}</TableCell>
+                                </TableRow>
+                              ))}
                           </TableBody>
                         </Table>
                       </TableContainer>
@@ -565,7 +642,7 @@ const MoveItems = ({
                       onChange={() => handleCheckboxChange(role.id)}
                     />
                   }
-                  label={role.name}
+                  label={role.role_name}
                 />
               </Grid>
             ))}{' '}

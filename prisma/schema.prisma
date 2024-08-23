@@ -169,9 +169,7 @@ model UserHasPermissionHistory {
   permission_code      String
   role_code            String?
   has_permission_type  String?
-  change_type          String
   changed_at           DateTime @default(now())
   changed_by           String
-
   @@map("user_has_permission_history")
 }
