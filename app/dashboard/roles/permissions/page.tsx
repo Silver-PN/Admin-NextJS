@@ -22,7 +22,7 @@ export default function Page() {
       // Updated function name
       setLoading(true);
       try {
-        const response = await axios.get('/api/permissions'); // Updated endpoint
+        const response = await axios.get('/api/roles/permissions'); // Updated endpoint
         setPermissions(response.data);
       } catch (error) {
         console.error('Failed to fetch permissions', error); // Updated message

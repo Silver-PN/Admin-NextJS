@@ -9,7 +9,6 @@ import { Button } from '@/components/ui/button';
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -135,11 +134,22 @@ export const UserForm: React.FC<UserFormProps> = ({ initialData, roles }) => {
         description: 'Your request was successful.'
       });
     } catch (error: any) {
-      toast({
-        variant: 'destructive',
-        title: 'Uh oh! Something went wrong.',
-        description: 'There was a problem with your request.'
-      });
+      if (error.response && error.response.data) {
+        const apiErrors = error.response.data;
+
+        apiErrors.forEach((apiError: any) => {
+          form.setError(apiError.path[0] as keyof UserFormValues, {
+            type: 'manual',
+            message: apiError.message
+          });
+        });
+      } else {
+        toast({
+          variant: 'destructive',
+          title: 'Uh oh! Something went wrong.',
+          description: 'There was a problem with your request.'
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -303,7 +313,6 @@ export const UserForm: React.FC<UserFormProps> = ({ initialData, roles }) => {
               </FormItem>
             )}
           />
-
           <Button disabled={loading} className="ml-auto" type="submit">
             {action}
           </Button>

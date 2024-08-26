@@ -8,7 +8,7 @@ export const POST = async (request: any) => {
   try {
     const body = await request.json();
 
-    userSchema.parse(body);
+    const validData = await userSchema.parseAsync(body);
 
     const {
       email,
@@ -19,15 +19,15 @@ export const POST = async (request: any) => {
       user_active,
       branch_code,
       department_id
-    } = body;
+    } = validData;
 
     const result = await prisma.$transaction(async (prisma) => {
-      const existingUser = await prisma.user.findUnique({
-        where: { username }
-      });
-      if (existingUser) {
-        throw new Error('Username is already in use');
-      }
+      // const existingUser = await prisma.user.findUnique({
+      //   where: { username }
+      // });
+      // if (existingUser) {
+      //   throw new Error('Username is already in use');
+      // }
       // const existingEmail = await prisma.user.findUnique({
       //   where: { email }
       // });

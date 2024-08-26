@@ -21,7 +21,7 @@ export default function Page() {
     const fetchRoles = async () => {
       setLoading(true);
       try {
-        const response = await axios.get('/api/roles');
+        const response = await axios.get('/api/roles/list-roles');
         setRoles(response.data);
       } catch (error) {
         console.error('Failed to fetch roles', error);
