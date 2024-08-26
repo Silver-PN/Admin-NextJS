@@ -17,7 +17,8 @@ export interface NavItem {
   icon?: keyof typeof Icons;
   label?: string;
   description?: string;
-  subItems?: SubMenuItem[];
+  isChidren?: boolean;
+  children?: NavItem[];
 }
 
 export interface NavItemWithChildren extends NavItem {

@@ -29,10 +29,7 @@ export default function Sidebar({ className }: SidebarProps) {
       )}
     >
       {!isMinimized && (
-        <Link
-          href={'https://github.com/Kiranism/next-shadcn-dashboard-starter'}
-          target="_blank"
-        >
+        <Link href={'https://www.evnhcmc.vn/'} target="_blank">
           <div className="hidden items-center p-5 pt-10 lg:flex">
             <Image
               src={Logo}

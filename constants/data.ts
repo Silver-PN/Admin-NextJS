@@ -115,45 +115,56 @@ export const navItems: NavItem[] = [
     title: 'Dashboard',
     href: '/dashboard',
     icon: 'dashboard',
-    label: 'Dashboard'
+    label: 'Dashboard',
+    isChidren: false
   },
   {
     title: 'User',
     href: '/dashboard/user',
     icon: 'user',
-    label: 'user'
+    label: 'user',
+    isChidren: false
   },
   {
     title: 'Employee',
     href: '/dashboard/employee',
     icon: 'employee',
-    label: 'employee'
+    label: 'employee',
+    isChidren: false
   },
   {
     title: 'Employee-Permission',
     href: '/dashboard/listItem',
     icon: 'bookUser',
-    label: 'bookUser'
+    label: 'bookUser',
+    isChidren: false
   },
   {
     title: 'Profile',
     href: '/dashboard/profile',
     icon: 'profile',
-    label: 'profile'
+    label: 'profile',
+    isChidren: false
   },
   {
     title: 'Kanban',
     href: '/dashboard/kanban',
     icon: 'kanban',
-    label: 'kanban'
+    label: 'kanban',
+    isChidren: false
   },
   {
     title: 'Roles',
     icon: 'scrollText',
     label: 'Roles',
-    subItems: [
-      { title: 'Permissons', href: '/dashboard/roles/permissions' },
-      { title: 'Roles', href: '/dashboard/roles/role' }
+    isChidren: true,
+    children: [
+      {
+        title: 'Permissons',
+        icon: 'scanface',
+        href: '/dashboard/roles/permissions'
+      },
+      { title: 'Roles', icon: 'scroll', href: '/dashboard/roles/role' }
     ]
   }
   // {

@@ -30,12 +30,16 @@ import {
   UserX2Icon,
   X,
   BookUser,
-  ScrollText
+  ScrollText,
+  ScanFace,
+  Scroll
 } from 'lucide-react';
 
 export type Icon = LucideIcon;
 
 export const Icons = {
+  scroll: Scroll,
+  scanface: ScanFace,
   dashboard: LayoutDashboardIcon,
   logo: Command,
   login: LogIn,

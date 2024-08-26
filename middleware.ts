@@ -42,6 +42,14 @@ export async function middleware(request: NextRequest) {
       return NextResponse.next();
     }
   }
+  if (pathname === '/') {
+    const token = await authenticate(request);
+    if (token) {
+      const url = request.nextUrl.clone();
+      url.pathname = '/dashboard';
+      return NextResponse.redirect(url);
+    }
+  }
 
   const isProtectRoute = PROTECTED_ROUTES.some((route) =>
     pathname.startsWith(route)
