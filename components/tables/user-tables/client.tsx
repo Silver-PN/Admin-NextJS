@@ -7,28 +7,24 @@ import { Separator } from '@/components/ui/separator';
 import { Plus } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { columns } from './columns';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import axios from 'axios';
 
-// interface ProductsClientProps {
-//   data: User[];
-// }
-// interface User {
-//   id: number;
-//   username: string;
-// }
 export const UserClient: React.FC = () => {
   const router = useRouter();
   const [users, setUsers] = useState([]);
 
-  // const [loadData, setLoadData] = useState(true);
-
-  async function fetchData(page: number, pageSize: number) {
+  async function fetchData(
+    page: number,
+    pageSize: number,
+    searchValue: string
+  ) {
     try {
       const response = await axios.get('/api/users', {
         params: {
           page,
-          pageSize
+          pageSize,
+          searchValue
         }
       });
       setUsers(response.data.users);
@@ -37,9 +33,6 @@ export const UserClient: React.FC = () => {
       return { data: [], totalUsers: 0 };
     }
   }
-  // useEffect(() => {
-  //   fetchData(1, 10);
-  // }, [loadData]);
 
   return (
     <>

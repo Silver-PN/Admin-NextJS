@@ -39,8 +39,8 @@ export default function Sidebar({ className }: SidebarProps) {
               className="mr-2 transition-all"
             />
             <div>
-              <p className="text-sm">Hệ thống</p>
-              <p className="text-sm">tin nhắn tập trung</p>
+              <p className="text-sm font-bold">Hệ thống</p>
+              <p className="text-sm font-bold">tin nhắn tập trung</p>
             </div>
           </div>
         </Link>

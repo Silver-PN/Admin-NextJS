@@ -1,4 +1,5 @@
 'use client';
+import * as XLSX from 'xlsx';
 
 import {
   ColumnDef,
@@ -29,19 +30,17 @@ import {
   DoubleArrowLeftIcon,
   DoubleArrowRightIcon
 } from '@radix-ui/react-icons';
-// import { Input } from './input';
 import { Button } from './button';
 import { ScrollArea, ScrollBar } from './scroll-area';
-import { useState, useEffect, useCallback } from 'react';
-import { useRouter, usePathname, useSearchParams } from 'next/navigation';
+import { useState, useEffect, useRef } from 'react';
 import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react';
-import axios from 'axios';
+import { Input } from '@mui/material';
 interface PaginationState {
   pageIndex: number;
   pageSize: number;
 }
-interface Response {
-  users: any;
+interface FetchDataResponse {
+  users: any[];
   meta: any;
 }
 interface DataTableProps<TData, TValue> {
@@ -52,7 +51,11 @@ interface DataTableProps<TData, TValue> {
   totalUsers: number;
   pageSizeOptions?: number[];
   pageCount: number;
-  fetchData: (pageIndex: number, pageSize: number) => Promise<void>;
+  fetchData: (
+    pageIndex: number,
+    pageSize: number,
+    searchValue: string
+  ) => Promise<FetchDataResponse>;
 }
 interface MetaType {
   totalUsers: number;
@@ -60,20 +63,23 @@ interface MetaType {
   pageSize: number;
   totalPages: number;
 }
-
+const debounce = (func: (...args: any[]) => void, delay: number) => {
+  let timer: NodeJS.Timeout;
+  return (...args: any[]) => {
+    clearTimeout(timer);
+    timer = setTimeout(() => func(...args), delay);
+  };
+};
 export function DataTable<TData, TValue>({
   columns,
   data: initialData,
   searchKey,
   pageNo,
-  totalUsers,
-  pageCount,
   pageSizeOptions = [1, 2, 5, 10, 20, 30, 40, 50],
   fetchData
 }: DataTableProps<TData, TValue>) {
-  const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
+  const [searchValue, setSearchValue] = useState<string>('');
+
   const [data, setData] = useState<TData[]>(initialData);
   const [meta, setMeta] = useState<MetaType | undefined>(undefined);
   const [sorting, setSorting] = useState<SortingState>([]);
@@ -85,63 +91,7 @@ export function DataTable<TData, TValue>({
     pageIndex: 0,
     pageSize: 0
   });
-
-  // Initialize pagination from search params
-  // useEffect(() => {
-  //   const pageParam = searchParams.get('page');
-  //   const limitParam = searchParams.get('pageSize');
-  //   if (pageParam) {
-  //     setPagination((prev) => ({
-  //       ...prev,
-  //       pageIndex: parseInt(pageParam as string, 10) - 1
-  //     }));
-  //   }
-  //   if (limitParam) {
-  //     setPagination((prev) => ({
-  //       ...prev,
-  //       pageSize: parseInt(limitParam as string, 10)
-  //     }));
-  //   }
-  // }, [searchParams]);
-
-  // Create query string
-  const createQueryString = useCallback(
-    (params: Record<string, string | number | null>) => {
-      const newSearchParams = new URLSearchParams(
-        searchParams?.toString() || ''
-      );
-
-      for (const [key, value] of Object.entries(params)) {
-        if (value === null) {
-          newSearchParams.delete(key);
-        } else {
-          newSearchParams.set(key, String(value));
-        }
-      }
-
-      return newSearchParams.toString();
-    },
-    [searchParams]
-  );
-
-  useEffect(() => {
-    const fetchDataAsync = async (pageIndex: number, pageSize: number) => {
-      const response = await fetchData(pageIndex, pageSize);
-      setData(response.users);
-      setMeta(response.meta);
-    };
-    if (
-      oldPagination.pageIndex !== pagination.pageIndex ||
-      oldPagination.pageSize !== pagination.pageSize
-    ) {
-      if (oldPagination.pageSize !== pagination.pageSize) {
-        fetchDataAsync(1, pagination.pageSize);
-      } else {
-        fetchDataAsync(pagination.pageIndex + 1, pagination.pageSize);
-      }
-      setOldPagination(pagination);
-    }
-  }, [pagination, fetchData, oldPagination.pageIndex, oldPagination.pageSize]);
+  const [oldSearch, setOldSearch] = useState('');
 
   const table = useReactTable({
     data,
@@ -160,35 +110,63 @@ export function DataTable<TData, TValue>({
     onPaginationChange: setPagination
   });
 
-  const searchValue = table.getColumn(searchKey)?.getFilterValue() as string;
+  const debounceRef = useRef<NodeJS.Timeout | null>(null);
+
+  const fetchDataAsync = async (
+    pageIndex: number,
+    pageSize: number,
+    searchValue: string
+  ) => {
+    const response = await fetchData(pageIndex, pageSize, searchValue);
+    setData(response.users);
+    setMeta(response.meta);
+  };
+
+  const debouncedFetchData = debounce(() => {
+    setPagination((prev) => ({ ...prev, pageIndex: 0 }));
+  }, 500);
 
   useEffect(() => {
-    // if (searchValue?.length > 0) {
-    //   router.push(
-    //     `${pathname}?${createQueryString({
-    //       page: null,
-    //       pageSize: null,
-    //       search: searchValue
-    //     })}`,
-    //     {
-    //       scroll: false
-    //     }
-    //   );
-    // } else {
-    //   router.push(
-    //     `${pathname}?${createQueryString({
-    //       page: null,
-    //       pageSize: null,
-    //       search: null
-    //     })}`,
-    //     {
-    //       scroll: false
-    //     }
-    //   );
-    // }
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
+    debounceRef.current = setTimeout(() => {
+      debouncedFetchData();
+    }, 500);
+    return () => {
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchValue]);
+  useEffect(() => {
+    if (
+      oldPagination.pageIndex !== pagination.pageIndex ||
+      oldPagination.pageSize !== pagination.pageSize ||
+      searchValue !== oldSearch
+    ) {
+      if (oldPagination.pageSize !== pagination.pageSize) {
+        fetchDataAsync(1, pagination.pageSize, searchValue);
+      } else {
+        fetchDataAsync(
+          pagination.pageIndex + 1,
+          pagination.pageSize,
+          searchValue
+        );
+      }
+      setOldSearch(searchValue);
+      setOldPagination(pagination);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    pagination,
+    fetchData,
+    oldPagination.pageIndex,
+    oldPagination.pageSize,
+    oldSearch
+  ]);
 
-    setPagination((prev) => ({ ...prev, pageIndex: 0 }));
-  }, [searchValue, createQueryString, pathname, router]);
   const generatePageNumbers = (currentPage: number, totalPages: number) => {
     const maxPageNumbersToShow = 3;
     const halfRange = Math.floor(maxPageNumbersToShow / 2);
@@ -219,16 +197,31 @@ export function DataTable<TData, TValue>({
     meta?.page || 1,
     meta?.totalPages || 1
   );
+
+  const handleDownloadExcel = () => {
+    const worksheet = XLSX.utils.json_to_sheet(data as any); // Convert data to worksheet
+    const workbook = XLSX.utils.book_new(); // Create a new workbook
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Sheet1'); // Append worksheet to workbook
+    const excelBuffer = XLSX.write(workbook, {
+      bookType: 'xlsx',
+      type: 'array'
+    }); // Create excel buffer
+    const blob = new Blob([excelBuffer], { type: 'application/octet-stream' }); // Create blob from buffer
+    const url = window.URL.createObjectURL(blob); // Create object URL
+    const link = document.createElement('a'); // Create a link element
+    link.href = url; // Set link href to object URL
+    link.download = 'table-data.xlsx'; // Set file name
+    link.click(); // Trigger download
+    window.URL.revokeObjectURL(url); // Clean up
+  };
   return (
     <>
-      {/* <Input
+      <Input
         placeholder={`Search ${searchKey}...`}
-        value={(table.getColumn(searchKey)?.getFilterValue() as string) ?? ''}
-        onChange={(event) =>
-          table.getColumn(searchKey)?.setFilterValue(event.target.value)
-        }
+        value={searchValue}
+        onChange={(event) => setSearchValue(event.target.value)}
         className="w-full md:max-w-sm"
-      /> */}
+      />
       <ScrollArea className="h-[calc(80vh-220px)] rounded-md border md:h-[calc(80dvh-200px)]">
         <Table className="relative">
           <TableHeader>
@@ -278,6 +271,8 @@ export function DataTable<TData, TValue>({
         </Table>
         <ScrollBar orientation="horizontal" />
       </ScrollArea>
+      <Button onClick={handleDownloadExcel}>Download Excel</Button>
+
       <div className="flex flex-col items-center justify-end gap-2 space-x-2 py-4 sm:flex-row">
         <div className="flex w-full items-center justify-between">
           <div className="flex-1 text-sm text-muted-foreground">
