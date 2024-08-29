@@ -110,6 +110,14 @@ export type Employee = {
   profile_picture?: string | null; // Profile picture can be a string (URL) or null (if no picture)
 };
 
+export type Branch = {
+  id: number;
+};
+
+export type Department = {
+  id: number;
+};
+
 export const navItems: NavItem[] = [
   {
     title: 'Dashboard',
@@ -128,6 +136,18 @@ export const navItems: NavItem[] = [
     href: '/dashboard/employee',
     icon: 'employee',
     label: 'employee'
+  },
+  {
+    title: 'Branch',
+    href: '/dashboard/branch',
+    icon: 'employee',
+    label: 'branch'
+  },
+  {
+    title: 'Department',
+    href: '/dashboard/department',
+    icon: 'employee',
+    label: 'department'
   },
   {
     title: 'Employee-Permission',

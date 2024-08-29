@@ -25,6 +25,10 @@ model User {
   loginMethod    MethodLogin?    @relation(fields: [method_login_id], references: [id])
   createdAt DateTime @default(now()) 
   updatedAt DateTime @updatedAt     
+  createdBranch Branch[] @relation(name: "CreatedBy")
+  updatedBranch Branch[] @relation(name: "UpdatedBy")
+  createdDepartment Department[] @relation(name: "CreatedBy")
+  updatedDepartment Department[] @relation(name: "UpdatedBy")
   @@map("users")
 }
 
@@ -107,4 +111,30 @@ model MethodLogin {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   @@map("method_login")
+}
+model Branch {
+  id        Int    @id @default(autoincrement())
+  branch_code String @unique
+  branch_name String 
+  status  String  @default("1")
+  created_at  DateTime @default(now()) 
+  updated_at  DateTime @updatedAt
+  createdby   User   @relation(fields: [created_by], references: [id], name: "CreatedBy")
+  updatedby   User   @relation(fields: [updated_by], references: [id], name: "UpdatedBy")
+  created_by  Int
+  updated_by  Int
+  @@map("branchs")
+}
+
+model Department {
+  id        Int    @id @default(autoincrement())
+  department_name String @unique
+  status  String  @default("1")
+  created_at  DateTime @default(now()) 
+  updated_at  DateTime @updatedAt
+  createdby   User   @relation(fields: [created_by], references: [id], name: "CreatedBy")
+  updatedby   User   @relation(fields: [updated_by], references: [id], name: "UpdatedBy")
+  created_by  Int
+  updated_by  Int
+  @@map("departments")
 }
