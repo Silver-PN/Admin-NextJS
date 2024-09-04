@@ -60,12 +60,10 @@ export const DepartmentForm: React.FC<UserFormProps> = ({
   const { data: session } = useSession();
 
   useEffect(() => {
-    if (session) {
-      setUserData(session?.user?.id);
-    } else {
-      console.log('fail');
+    if (session?.user?.id) {
+      setUserData(session.user.id);
     }
-  }, []);
+  }, [session]);
 
   const title = initialData ? 'Edit Department' : 'Create Department';
   const description = initialData
@@ -115,7 +113,6 @@ export const DepartmentForm: React.FC<UserFormProps> = ({
     } catch (error: any) {
       if (error.response && error.response.data) {
         const apiErrors = error.response.data;
-        console.log('eror', apiErrors);
 
         apiErrors.forEach((apiError: any) => {
           form.setError(apiError.path[0] as keyof UserFormValues, {

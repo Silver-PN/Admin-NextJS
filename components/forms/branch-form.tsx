@@ -62,12 +62,10 @@ export const BranchForm: React.FC<UserFormProps> = ({
   const { data: session } = useSession();
 
   useEffect(() => {
-    if (session) {
-      setUserData(session?.user?.id);
-    } else {
-      console.log('fail');
+    if (session?.user?.id) {
+      setUserData(session.user.id);
     }
-  }, []);
+  }, [session]);
 
   const title = initialData ? 'Edit Branch' : 'Create Branch';
   const description = initialData ? 'Edit Branch details.' : 'Add a new Branch';

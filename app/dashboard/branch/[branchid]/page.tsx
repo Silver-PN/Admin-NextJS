@@ -17,7 +17,6 @@ const Page = () => {
         try {
           const response = await axios.get(`/api/branchs/${branchid}`);
           setInitialData(response.data);
-          console.log(response);
         } catch (error) {
           console.error('Failed to fetch user data', error);
         } finally {

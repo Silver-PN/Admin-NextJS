@@ -13,13 +13,10 @@ const Page = () => {
 
   useEffect(() => {
     const fetchUser = async () => {
-      console.log('ád', departmentid);
-
       if (departmentid) {
         try {
           const response = await axios.get(`/api/departments/${departmentid}`);
           setInitialData(response.data);
-          console.log('kt', response);
         } catch (error) {
           console.error('Failed to fetch user data', error);
         } finally {
@@ -44,7 +41,6 @@ const Page = () => {
     { id: '1', name: 'Đang hoạt động' },
     { id: '0', name: 'Ngừng hoạt động' }
   ];
-  console.log('checl', initialData);
 
   return (
     <PageContainer scrollable={true}>
