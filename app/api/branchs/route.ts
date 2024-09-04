@@ -17,12 +17,16 @@ export const POST = async (request: any) => {
           branch_code,
           branch_name,
           status,
-          updatedby: {
-            connect: { id: updated_by }
-          },
-          createdby: {
-            connect: { id: created_by }
-          }
+          created_by_user: created_by
+            ? {
+                connect: { id: created_by }
+              }
+            : undefined
+          // updated_by_user: updated_by
+          //   ? {
+          //       connect: { id: updated_by }
+          //     }
+          //   : undefined
         }
       });
       return 'Branch is registered';
@@ -49,10 +53,10 @@ export async function GET(request: Request) {
 
     const users = await prisma.branch.findMany({
       include: {
-        createdby: {
+        created_by_user: {
           select: {
             id: true,
-            name: true
+            employment_name: true
           }
         }
       },

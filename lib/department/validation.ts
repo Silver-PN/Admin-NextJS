@@ -6,13 +6,13 @@ const userSchema = z
     department_name: z.string().refine((val) => val.length > 0, {
       message: 'Department Name is required'
     }),
-    status: z.string().optional(),
-    created_by: z.number().optional(),
-    updated_by: z.number().optional(),
+    status: z.string(),
+    created_by: z.string().optional(),
+    updated_by: z.string(),
     id: z.number().optional()
   })
   .superRefine(async (data, ctx) => {
-    const department = await prisma.department.findUnique({
+    const department = await prisma.departments.findUnique({
       where: {
         department_name: data.department_name,
         NOT: { id: data.id }

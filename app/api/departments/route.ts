@@ -6,22 +6,25 @@ import { z } from 'zod';
 export const POST = async (request: any) => {
   try {
     const body = await request.json();
-    console.log('sdasdffff', body);
 
     const validData = await userSchema.parseAsync(body);
 
     const { department_name, status, created_by, updated_by } = validData;
     const result = await prisma.$transaction(async (prisma) => {
-      await prisma.department.create({
+      await prisma.departments.create({
         data: {
           department_name,
           status,
-          updatedby: {
-            connect: { id: updated_by }
-          },
-          createdby: {
-            connect: { id: created_by }
-          }
+          created_by_user: created_by
+            ? {
+                connect: { id: created_by }
+              }
+            : undefined
+          // updated_by_user: updated_by
+          //   ? {
+          //       connect: { id: updated_by }
+          //     }
+          //   : undefined
         }
       });
       return 'department is registered';
@@ -46,12 +49,12 @@ export async function GET(request: Request) {
     const skip = (page - 1) * pageSize;
     const take = pageSize;
 
-    const users = await prisma.department.findMany({
+    const users = await prisma.departments.findMany({
       include: {
-        createdby: {
+        created_by_user: {
           select: {
             id: true,
-            name: true
+            employment_name: true
           }
         }
       },
@@ -60,7 +63,7 @@ export async function GET(request: Request) {
     });
 
     // Get the total count of users for pagination metadata
-    const totalUsers = await prisma.department.count();
+    const totalUsers = await prisma.departments.count();
 
     return NextResponse.json({
       users,

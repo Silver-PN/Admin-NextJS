@@ -8,9 +8,9 @@ const userSchema = z
       .refine((val) => val.length > 0, { message: 'Branch code is required' }),
 
     branch_name: z.string(),
-    status: z.string().optional(),
-    created_by: z.number().optional(),
-    updated_by: z.number().optional(),
+    status: z.string(),
+    created_by: z.string(),
+    updated_by: z.string(),
     id: z.number().optional()
   })
   .superRefine(async (data, ctx) => {

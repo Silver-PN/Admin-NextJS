@@ -29,6 +29,7 @@ export const BranchClient: React.FC = () => {
           pageSize
         }
       });
+      setUsers(response.data.users);
       return response.data;
     } catch (error) {
       return { data: [], totalUsers: 0 };

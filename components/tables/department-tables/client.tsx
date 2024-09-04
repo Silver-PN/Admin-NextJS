@@ -21,13 +21,12 @@ export const DepartmentClient: React.FC = () => {
           pageSize
         }
       });
-      setUsers(response.data);
+      setUsers(response.data.users);
       return response.data;
     } catch (error) {
       return { data: [], totalUsers: 0 };
     }
   }
-  console.log('check', users);
 
   return (
     <>

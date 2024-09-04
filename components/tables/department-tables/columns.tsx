@@ -49,7 +49,7 @@ export const columns: ColumnDef<UserData>[] = [
     accessorKey: 'createdby',
     header: 'created_by',
     cell: ({ row }) => {
-      return row.original.createdby.name;
+      return row.original.created_by_user?.employment_name;
     }
   },
   {

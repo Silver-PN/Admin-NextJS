@@ -15,7 +15,6 @@ prisma.$use(
   }
 );
 async function main() {
-  // Seed roles
   const roles = [
     {
       role_code: 'admin',
@@ -233,8 +232,7 @@ async function main() {
       branch_code: '001',
       branch_name: 'Main Branch',
       description: 'Main office branch',
-      status: 'active',
-      created_by: 'admin'
+      status: '1'
     }
     // Add more branches as needed
   ];
@@ -253,8 +251,7 @@ async function main() {
       id: 1,
       department_name: 'Admin',
       description: 'Admin Seed',
-      status: 'active',
-      created_by: 'admin'
+      status: '1'
     }
     // Add more departments as needed
   ];

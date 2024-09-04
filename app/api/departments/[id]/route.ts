@@ -11,7 +11,7 @@ export async function GET(
   const { id } = params;
 
   try {
-    const user = await prisma.department.findUnique({
+    const user = await prisma.departments.findUnique({
       where: { id: parseInt(id) },
       select: {
         id: true,
@@ -50,12 +50,12 @@ export async function PUT(
 
     const { department_name, updated_by, status } = validData;
 
-    const updatedUser = await prisma.department.update({
+    const updatedUser = await prisma.departments.update({
       where: { id: parseInt(id) },
       data: {
         department_name,
         status,
-        updatedby: {
+        updated_by_user: {
           connect: { id: updated_by }
         }
       }
@@ -79,7 +79,7 @@ export async function DELETE(
   const { id } = params;
 
   try {
-    const deletedUser = await prisma.department.delete({
+    const deletedUser = await prisma.departments.delete({
       where: { id: parseInt(id) }
     });
 

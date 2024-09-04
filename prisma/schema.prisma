@@ -28,44 +28,55 @@ model User {
   updated_at      DateTime @updatedAt
   updated_by      String?
 
-  branch           Branch              @relation(fields: [branch_code], references: [branch_code])
-  department       Departments         @relation(fields: [department_id], references: [id])
+  branch           Branch              @relation("BranchUser", fields: [branch_code], references: [branch_code])
+  department       Departments         @relation("DepartmentsUser", fields: [department_id], references: [id])
   method_login     MethodLogin?        @relation(fields: [method_login_id], references: [id])
   user_permissions UserHasPermission[]
+
+  created_branches  Branch[]            @relation("BranchCreatedBy")
+  updated_branches  Branch[]            @relation("BranchUpdatedBy")
+  created_departments Departments[]     @relation("DepartmentsCreatedBy")
+  updated_departments Departments[]     @relation("DepartmentsUpdatedBy")
 
   @@map("user")
 }
 
 model Branch {
-  id          Int      @id @default(autoincrement())
-  branch_code String   @unique
-  branch_name String
-  description String?
-  status      String
-  created_at  DateTime @default(now())
-  created_by  String
-  updated_at  DateTime @updatedAt
-  updated_by  String?
+  id                Int      @id @default(autoincrement())
+  branch_code       String   @unique
+  branch_name       String
+  description       String?
+  status            String
+  created_at        DateTime @default(now())
+  created_by        String?
+  updated_at        DateTime @updatedAt
+  updated_by        String?
 
-  users User[]
+  users             User[]   @relation("BranchUser")
+  created_by_user   User?     @relation("BranchCreatedBy", fields: [created_by], references: [id])
+  updated_by_user   User?    @relation("BranchUpdatedBy", fields: [updated_by], references: [id])
 
   @@map("branch")
 }
 
 model Departments {
-  id              Int      @id @default(autoincrement())
-  department_name String   @unique
-  description     String?
-  status          String
-  created_at      DateTime @default(now())
-  created_by      String
-  updated_at      DateTime @updatedAt
-  updated_by      String?
+  id                 Int      @id @default(autoincrement())
+  department_name    String   @unique
+  description        String?
+  status             String
+  created_at         DateTime @default(now())
+  created_by         String?
+  updated_at         DateTime @updatedAt
+  updated_by         String?
 
-  users User[]
+  users              User[]   @relation("DepartmentsUser")
+  created_by_user    User?    @relation("DepartmentsCreatedBy", fields: [created_by], references: [id])
+  updated_by_user    User?    @relation("DepartmentsUpdatedBy", fields: [updated_by], references: [id])
 
   @@map("departments")
 }
+
+
 
 model MethodLogin {
   id                Int      @id @default(autoincrement())

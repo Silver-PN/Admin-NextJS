@@ -49,7 +49,7 @@ export async function PUT(
         branch_code,
         branch_name,
         status,
-        updatedby: {
+        updated_by_user: {
           connect: { id: updated_by }
         }
       }
