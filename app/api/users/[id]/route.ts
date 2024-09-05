@@ -104,19 +104,15 @@ export async function DELETE(
   const { id } = params;
 
   try {
-    // Delete user permissions
-    await prisma.userHasPermission.deleteMany({
-      where: { user_id: id }
+    const lockedUser = await prisma.user.update({
+      where: { id: id },
+      data: {
+        status: 'locked'
+      }
     });
 
-    // Delete the user
-    const deletedUser = await prisma.user.delete({
-      where: { id: id }
-    });
-
-    return NextResponse.json(deletedUser);
+    return NextResponse.json(lockedUser);
   } catch (error) {
-    console.error('Error deleting user:', error);
     return NextResponse.json(
       { error: 'Internal Server Error' },
       { status: 500 }
