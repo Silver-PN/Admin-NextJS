@@ -232,7 +232,8 @@ async function main() {
       branch_code: '001',
       branch_name: 'Main Branch',
       description: 'Main office branch',
-      status: '1'
+      status: '1',
+      created_by: 'seed'
     }
     // Add more branches as needed
   ];
@@ -251,7 +252,8 @@ async function main() {
       id: 1,
       department_name: 'Admin',
       description: 'Admin Seed',
-      status: '1'
+      status: '1',
+      created_by: 'seed'
     }
     // Add more departments as needed
   ];

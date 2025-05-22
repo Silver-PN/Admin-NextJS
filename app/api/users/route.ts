@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import prisma from '@/lib/db';
 import { userSchema } from '@/lib/validation';
 import { z } from 'zod';
+import logger from '@/lib/logger';
 
 export const POST = async (request: any) => {
   try {
@@ -71,6 +72,7 @@ export const POST = async (request: any) => {
 };
 export async function GET(request: Request) {
   try {
+    logger.info('Handling /api/hello request');
     const { searchParams } = new URL(request.url);
     const page = Math.max(parseInt(searchParams.get('page') || '1', 10), 1);
     const pageSize = parseInt(searchParams.get('pageSize') || '10', 10);

@@ -71,11 +71,16 @@ export async function PUT(
       fields.forEach((field) => {
         // Bỏ qua các trường thời gian tạo và cập nhật
         if (field !== 'created_at' && field !== 'updated_at') {
-          // So sánh giá trị của trường trong hai đối tượng
-          if (oldUser[field] !== updatedUser[field]) {
-            changes[field] = {
-              oldValue: oldUser[field],
-              newValue: updatedUser[field]
+          // Compare field values between objects
+          if (
+            oldUser[field as keyof typeof oldUser] !==
+            updatedUser[field as keyof typeof updatedUser]
+          ) {
+            (changes as Record<string, { oldValue: any; newValue: any }>)[
+              field
+            ] = {
+              oldValue: oldUser[field as keyof typeof oldUser],
+              newValue: updatedUser[field as keyof typeof updatedUser]
             };
           }
         }
